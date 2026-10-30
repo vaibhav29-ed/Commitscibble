@@ -12,6 +12,7 @@
 | Convex | Managed | Read-only realtime projection of audit events |
 | GitHub | External | OAuth identity, repository metadata, trees/blobs, diffs, commits |
 | AI providers | External | Gemini primary, Groq fallback, mock for local development |
+| Email (Resend) | External, optional | Best-effort review-required, applied and run-failed notifications |
 
 The API never performs long AI or GitHub work inline. It writes a run, enqueues a
 job with a deterministic job id, and returns `202`. The worker owns state
@@ -39,6 +40,19 @@ transitions and GitHub writes.
 7. The proposal is stored with `baseReadmeHash`, `baseCommitSha`, diff and
    validation findings. In review mode the repository becomes `PENDING_REVIEW`; in
    automatic mode an apply job is enqueued immediately.
+
+## Notifications
+
+Transactional email is optional and disabled unless both `RESEND_API_KEY` and
+`EMAIL_FROM` are configured. When enabled, the worker sends:
+
+- a review-required message when a proposal is created in `REVIEW` mode;
+- an applied message only after GitHub confirms a commit;
+- a run-failed message at most once per run, claimed atomically with
+  `notifiedFailureAt` so retries of the same run cannot duplicate it.
+
+Notifications are fire-and-forget: a provider error is logged and never changes
+the run outcome, and the pipeline works exactly the same when email is disabled.
 
 ## Incremental flow
 
