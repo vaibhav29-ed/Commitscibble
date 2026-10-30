@@ -1,5 +1,9 @@
 # CommitScibble
 
+<p align="center">
+  <img src="apps/web/public/brand/logo.png" alt="CommitScibble logo" width="140" />
+</p>
+
 **Your code evolves. Your docs follow.**
 
 CommitScibble is a GitHub documentation automation service. It reads a repository's

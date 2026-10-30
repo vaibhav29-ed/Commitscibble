@@ -22,12 +22,13 @@ import { Button, Skeleton } from "./ui";
 export function Logo({ withWordmark = true }: { withWordmark?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2" aria-label="CommitScibble home">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-foreground text-background">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden>
-          <path d="M5 7h8l4 4v6H5z" stroke="currentColor" strokeWidth="1.8" />
-          <path d="M8 11h4M8 14h3" stroke="currentColor" strokeWidth="1.4" />
-        </svg>
-      </span>
+      <img
+        src="/brand/logo.png"
+        alt=""
+        width={32}
+        height={32}
+        className="h-8 w-8 rounded-lg object-cover ring-1 ring-black/5 dark:ring-white/10"
+      />
       {withWordmark ? (
         <span className="text-sm font-semibold tracking-tight">
           Commit<span className="text-muted-foreground">Scibble</span>
