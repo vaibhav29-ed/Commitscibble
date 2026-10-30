@@ -8,6 +8,12 @@ importers:
 
   .:
     devDependencies:
+      '@commitscibble/config':
+        specifier: workspace:*
+        version: link:packages/config
+      '@commitscibble/persistence':
+        specifier: workspace:*
+        version: link:packages/persistence
       '@eslint/js':
         specifier: ^9.18.0
         version: 9.39.5

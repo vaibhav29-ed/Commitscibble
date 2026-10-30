@@ -74,20 +74,35 @@ failure handling, [docs/security.md](docs/security.md) for the threat model, and
 
 ## Quick start
 
-Prerequisites: Node.js >= 20.11, pnpm 10 (`corepack enable`), Docker (for local
-MongoDB and Redis), and a GitHub OAuth app.
+Prerequisites: Node.js >= 20.12, pnpm 10 (`npm install -g pnpm@10` or
+`corepack enable`), Docker (for local MongoDB and Redis), and a GitHub OAuth app.
+This is a pnpm workspace: `npm install` is not supported.
 
 ```bash
-cp .env.example .env
-# Fill SESSION_SECRET (openssl rand -base64 48) and TOKEN_ENCRYPTION_KEY (openssl rand -base64 32)
+cp .env.example .env                # PowerShell: Copy-Item .env.example .env
+# Fill SESSION_SECRET (48 random bytes, base64) and TOKEN_ENCRYPTION_KEY (32 random bytes, base64)
 docker compose up -d                # MongoDB 7 + Redis 7
 pnpm install --frozen-lockfile
 pnpm db:indexes                     # create MongoDB indexes
 pnpm dev                            # API :4000, worker, web :5173
 ```
 
+The repository `.env` is loaded automatically by `@commitscibble/config` for local
+runs; real environment variables take precedence. Generate the two secrets with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
 Open http://localhost:5173. `GET /health` is liveness, `GET /ready` checks MongoDB
 and Redis.
+
+Without Docker, you can still run the web app on its own
+(`pnpm --filter @commitscibble/web dev`), which serves the landing page and docs.
+The API, worker and `pnpm db:indexes` require reachable MongoDB and Redis
+instances. `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and `pnpm e2e`
+need no infrastructure; `pnpm e2e` starts the web dev server itself.
 
 ### GitHub OAuth app
 

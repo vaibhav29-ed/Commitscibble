@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { z } from "zod";
 
 const boolFromString = z.preprocess((value) => {
@@ -76,12 +78,39 @@ export const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+let envFileLoaded = false;
+
+/**
+ * Load the repository `.env` once for local development. Deployed services keep
+ * using their platform environment; real environment variables always win over
+ * values in the file. Commands run from the repo root or from a workspace.
+ */
+function loadLocalEnvFile(): void {
+  if (envFileLoaded) return;
+  envFileLoaded = true;
+  if (process.env.NODE_ENV === "test") return;
+  const candidates = [
+    resolve(process.cwd(), ".env"),
+    resolve(process.cwd(), "..", "..", ".env"),
+  ];
+  for (const path of candidates) {
+    if (!existsSync(path)) continue;
+    try {
+      process.loadEnvFile(path);
+    } catch {
+      // A malformed or unreadable .env is surfaced by schema validation below.
+    }
+    return;
+  }
+}
+
 export interface ServiceRequirements {
   role: "api" | "worker";
 }
 
 /** Validate environment variables and fail loudly with every missing key listed. */
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
+  if (source === process.env) loadLocalEnvFile();
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
     const issues = parsed.error.issues
