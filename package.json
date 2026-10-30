@@ -1,0 +1,42 @@
+{
+  "name": "commitscibble",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter \"./services/*\" --filter \"./apps/*\" run dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm run typecheck:node && pnpm --filter @commitscibble/web run typecheck",
+    "typecheck:node": "tsc -p tsconfig.check.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "e2e": "playwright test",
+    "db:indexes": "tsx scripts/init-indexes.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@playwright/test": "^1.50.0",
+    "@types/express": "^5.0.0",
+    "@types/supertest": "^6.0.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.10.7",
+    "jsdom": "^26.0.0",
+    "convex": "^1.19.0",
+    "eslint": "^9.18.0",
+    "express": "^5.1.0",
+    "prettier": "^3.4.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.0.2"
+  }
+}

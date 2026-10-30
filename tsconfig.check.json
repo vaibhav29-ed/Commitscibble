@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@commitscibble/shared": ["packages/shared/src/index.ts"],
+      "@commitscibble/shared/node": ["packages/shared/src/node.ts"],
+      "@commitscibble/config": ["packages/config/src/index.ts"],
+      "@commitscibble/github": ["packages/github/src/index.ts"],
+      "@commitscibble/ai-engine": ["packages/ai-engine/src/index.ts"],
+      "@commitscibble/documentation-engine": ["packages/documentation-engine/src/index.ts"],
+      "@commitscibble/email": ["packages/email/src/index.ts"],
+      "@commitscibble/persistence": ["packages/persistence/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "services/*/src/**/*.ts",
+    "convex/**/*.ts",
+    "tests/**/*.ts",
+    "scripts/**/*.ts",
+    "*.ts"
+  ],
+  "exclude": ["**/*.test.tsx", "node_modules", "**/dist"]
+}
