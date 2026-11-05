@@ -10,6 +10,10 @@ export default tseslint.config(
       "**/playwright-report/**",
       "**/_generated/**",
       "convex/_generated/**",
+      // Vendored agent-skill assets: third-party/minified browser bundles that
+      // are not part of this project's source and are not meant to be linted.
+      ".github/skills/**",
+      "**/*.min.js",
     ],
   },
   js.configs.recommended,
