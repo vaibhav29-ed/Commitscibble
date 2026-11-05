@@ -1,2 +1,2 @@
-# CommitScribble
+# CommitScibble
 Soon To Announce 
