@@ -8,7 +8,7 @@ describe("OAuth helpers", () => {
     const url = new URL(
       buildAuthorizeUrl({
         clientId: "client-id",
-        redirectUri: "http://localhost:4000/auth/github/callback",
+        redirectUri: "http://commitscribble.vercel.app/auth/github/callback",
         state: "state-token",
       }),
     );
