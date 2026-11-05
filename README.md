@@ -1,4 +1,5 @@
 # CommitScibble
+<<<<<<< HEAD
 
 <p align="center">
   <img src="apps/web/public/brand/logo.png" alt="CommitScibble logo" width="140" />
@@ -260,3 +261,6 @@ initialisation, backups and troubleshooting, are in
 ## License
 
 MIT — see [LICENSE](LICENSE).
+=======
+Soon To Announce 
+>>>>>>> 9a4bd917f5b6947a0d418083926b8d69fcee09d3
