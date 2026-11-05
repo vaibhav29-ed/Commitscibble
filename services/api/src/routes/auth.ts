@@ -38,6 +38,45 @@ export function createPublicAuthRouter(deps: {
   });
 
   router.get(
+    "/github/app/callback",
+    asyncHandler(async (req, res) => {
+      const appUrl = deps.env.APP_URL;
+      const session = await deps.sessions.resolve(
+        parseCookie(req.headers.cookie ?? "")[SESSION_COOKIE],
+      );
+      if (!session) {
+        res.redirect(302, `${appUrl}/signin?error=app_session_missing`);
+        return;
+      }
+
+      const installationId = Number(req.query.installation_id);
+      if (!Number.isInteger(installationId) || installationId <= 0) {
+        res.redirect(302, `${appUrl}/dashboard/repositories?app=invalid_installation`);
+        return;
+      }
+
+      try {
+        const verified = await deps.github.verifyInstallation(session.id, installationId);
+        if (!verified) {
+          deps.logger.warn("Rejected GitHub App installation that does not belong to the user", {
+            userId: session.id,
+            installationId,
+          });
+          res.redirect(302, `${appUrl}/dashboard/repositories?app=unverified`);
+          return;
+        }
+        await deps.github.linkInstallation(session.id, installationId);
+        res.redirect(302, `${appUrl}/dashboard/repositories?app_installed=1`);
+      } catch (error) {
+        deps.logger.error("GitHub App installation verification failed", {
+          error: error instanceof Error ? error.message : "unknown",
+        });
+        res.redirect(302, `${appUrl}/dashboard/repositories?app=verify_failed`);
+      }
+    }),
+  );
+
+  router.get(
     "/github/callback",
     asyncHandler(async (req, res) => {
       const appUrl = deps.env.APP_URL;

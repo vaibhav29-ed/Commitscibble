@@ -97,7 +97,7 @@ export function RepoActions({
           </>
         }
       >
-        <div className="rounded-md border border-border bg-muted/40 p-3 text-xs">
+        <div className="rounded-md border border-border bg-muted/40 p-3 text-sm leading-relaxed">
           <p className="font-medium">{repository.fullName}</p>
           <p className="mt-1 text-muted-foreground">
             Update mode: <span className="text-foreground">{repository.settings.updateMode}</span>
@@ -162,7 +162,7 @@ export function DisconnectRepository({
         <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
           <div>
             <Label htmlFor="revoke">Revoke GitHub authorization</Label>
-            <p className="mt-1 text-2xs text-muted-foreground">
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               Also deletes the encrypted token, ends all sessions, and disconnects every repository
               owned by this account. You will need to sign in with GitHub again to reconnect.
             </p>
@@ -174,7 +174,7 @@ export function DisconnectRepository({
           />
         </div>
         {revoke ? (
-          <p className="mt-3 text-2xs text-warning">
+          <p className="mt-3 text-sm leading-relaxed text-warning">
             This affects every repository in this account, not just {repository.fullName}.
           </p>
         ) : null}
@@ -187,7 +187,7 @@ export function SeeDetails({ repositoryId }: { repositoryId: string }) {
   return (
     <Link
       to={`/dashboard/repositories/${repositoryId}`}
-      className="inline-flex items-center gap-1 text-2xs font-medium text-accent hover:underline"
+      className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
     >
       Repository settings <ArrowRight className="h-3 w-3" />
     </Link>

@@ -1,7 +1,6 @@
 import {
   aiConfig,
   assertServiceEnv,
-  convexPublisherConfig,
   isAiConfigured,
   loadEnv,
 } from "@commitscibble/config";
@@ -9,6 +8,7 @@ import { connectDatabase, disconnectDatabase, initializeIndexes } from "@commits
 import { createApp } from "./app.js";
 import { createLogger } from "./lib/logger.js";
 import { JobQueue } from "./lib/queue.js";
+import { createRedisRateLimitStore, setRateLimitStore } from "./lib/rate-limit.js";
 import { createServices } from "./services/index.js";
 
 async function main(): Promise<void> {
@@ -24,6 +24,8 @@ async function main(): Promise<void> {
   logger.info("MongoDB connected and indexes initialized");
 
   const queue = new JobQueue(env.REDIS_URL as string);
+  const rateLimiter = createRedisRateLimitStore(env.REDIS_URL as string);
+  setRateLimitStore(rateLimiter.store);
   const services = createServices(env, logger, queue);
   const settings = aiConfig(env);
   const aiProviders = [settings.primary, settings.fallback]
@@ -34,8 +36,16 @@ async function main(): Promise<void> {
       primary: settings.primary,
     });
   }
-  if (!convexPublisherConfig(env)) {
-    logger.warn("CONVEX_URL is not configured; the dashboard will use polling for activity updates");
+
+  const missingRealtimeKeys = [
+    env.CONVEX_URL ? null : "CONVEX_URL",
+    env.COMMITSCIBBLE_PUBLISH_TOKEN ? null : "COMMITSCIBBLE_PUBLISH_TOKEN",
+  ].filter((key): key is string => key !== null);
+  if (missingRealtimeKeys.length > 0) {
+    logger.warn(
+      "Convex realtime is not fully configured; the dashboard will poll for activity updates",
+      { missing: missingRealtimeKeys },
+    );
   }
 
   const app = createApp({
@@ -57,12 +67,23 @@ async function main(): Promise<void> {
     });
   });
 
+  const queueReady = await queue.waitUntilReady();
+  if (queueReady) {
+    logger.info("Redis queue connection ready");
+  } else {
+    logger.error(
+      "Redis is unreachable; documentation runs cannot be queued until it is available",
+      { hint: "Start Redis (docker compose up -d redis) or point REDIS_URL at a reachable instance" },
+    );
+  }
+
   let shuttingDown = false;
   const shutdown = async (signal: string): Promise<void> => {
     if (shuttingDown) return;
     shuttingDown = true;
     logger.info("Shutting down API", { signal });
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    await rateLimiter.close().catch(() => undefined);
     await queue.close().catch(() => undefined);
     await disconnectDatabase().catch(() => undefined);
     process.exit(0);

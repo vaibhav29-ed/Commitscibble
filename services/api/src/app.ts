@@ -4,13 +4,14 @@ import { ZodError } from "zod";
 import {
   AppError,
   ERROR_CODES,
+  isAppError,
   openApiDocument,
   redactSecrets,
   toAppError,
 } from "@commitscibble/shared";
 import { newId } from "@commitscibble/shared/node";
 import type { Env } from "@commitscibble/config";
-import { convexPublisherConfig, corsOrigins } from "@commitscibble/config";
+import { convexPublisherConfig, corsOrigins, githubAppConfig } from "@commitscibble/config";
 import type { Logger } from "./lib/logger.js";
 import { sendError, sendOk } from "./lib/http.js";
 import {
@@ -95,6 +96,7 @@ export function createApp(deps: AppDependencies): Express {
 
   const requireAuth = createRequireAuth(sessions);
   const realtimeConfigured = Boolean(convexPublisherConfig(env));
+  const githubApp = githubAppConfig(env);
   const realtimeSecret = realtimeConfigured
     ? (env.COMMITSCIBBLE_PUBLISH_TOKEN as string)
     : null;
@@ -121,6 +123,13 @@ export function createApp(deps: AppDependencies): Express {
       defaultUpdateMode: env.DOC_UPDATE_MODE,
       aiProviders: deps.aiProviders ?? [],
       realtime: { convex: realtimeConfigured },
+      githubApp: githubApp
+        ? {
+            configured: true,
+            slug: githubApp.slug,
+            installUrl: `https://github.com/apps/${encodeURIComponent(githubApp.slug)}/installations/new`,
+          }
+        : { configured: false, slug: null, installUrl: null },
       billingEnabled: env.BILLING_ENABLED,
       retention: {
         auditDays: env.AUDIT_RETENTION_DAYS,
@@ -244,6 +253,11 @@ function errorHandler(logger: Logger) {
 
     const appError = toAppError(error as Error);
     const isServerError = appError.httpStatus >= 500;
+    // Only errors the API did not author get their message hidden. AppError
+    // messages are written for clients (e.g. NOT_READY -> "the job queue is
+    // unavailable, check REDIS_URL"), so replacing them with a generic 500
+    // would make an actionable failure impossible to diagnose from the UI.
+    const shouldScrub = !isAppError(error);
 
     if (isServerError) {
       logger.error("request failed", {
@@ -251,6 +265,7 @@ function errorHandler(logger: Logger) {
         code: appError.code,
         message: redactSecrets(appError.message),
         path: req.path,
+        ...(shouldScrub ? {} : { cause: redactSecrets(String(appError.cause ?? "")) }),
       });
     } else {
       logger.info("request rejected", {
@@ -262,7 +277,7 @@ function errorHandler(logger: Logger) {
 
     sendError(
       res,
-      isServerError
+      isServerError && shouldScrub
         ? new AppError(ERROR_CODES.INTERNAL_ERROR, "An unexpected error occurred. Check server logs with the request id.", {
             httpStatus: 500,
             details: { safeCode: appError.code },

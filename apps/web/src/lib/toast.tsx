@@ -26,14 +26,42 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
+  const [leavingIds, setLeavingIds] = useState<Set<number>>(new Set());
 
-  const push = useCallback((toast: { title: string; description?: string; variant?: ToastVariant }) => {
-    const id = Date.now() + Math.random();
-    setItems((current) => [...current.slice(-3), { id, variant: toast.variant ?? "info", title: toast.title, description: toast.description }]);
-    window.setTimeout(() => {
-      setItems((current) => current.filter((item) => item.id !== id));
-    }, 7000);
+  const remove = useCallback((id: number) => {
+    setItems((current) => current.filter((item) => item.id !== id));
+    setLeavingIds((current) => {
+      if (!current.has(id)) return current;
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
   }, []);
+
+  const dismiss = useCallback(
+    (id: number) => {
+      setLeavingIds((current) => new Set(current).add(id));
+      window.setTimeout(() => remove(id), 180);
+    },
+    [remove],
+  );
+
+  const push = useCallback(
+    (toast: { title: string; description?: string; variant?: ToastVariant }) => {
+      const id = Date.now() + Math.random();
+      setItems((current) => [
+        ...current.slice(-3),
+        {
+          id,
+          variant: toast.variant ?? "info",
+          title: toast.title,
+          description: toast.description,
+        },
+      ]);
+      window.setTimeout(() => dismiss(id), 7000);
+    },
+    [dismiss],
+  );
 
   const value = useMemo(() => ({ push }), [push]);
 
@@ -48,8 +76,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {items.map((item) => (
           <div
             key={item.id}
+            data-leaving={leavingIds.has(item.id) ? "true" : undefined}
             className={cn(
-              "pointer-events-auto flex items-start gap-3 rounded-lg border bg-card p-3 shadow-lg",
+              "motion-toast pointer-events-auto flex items-start gap-3 rounded-lg border bg-card p-3 shadow-lg",
               item.variant === "error" && "border-danger/40",
               item.variant === "success" && "border-success/40",
             )}
@@ -64,12 +93,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">{item.title}</p>
               {item.description ? (
-                <p className="mt-0.5 text-xs text-muted-foreground">{item.description}</p>
+                <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
               ) : null}
             </div>
             <button
               type="button"
-              onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))}
+              onClick={() => dismiss(item.id)}
               className="rounded p-0.5 text-muted-foreground hover:text-foreground"
               aria-label="Dismiss notification"
             >

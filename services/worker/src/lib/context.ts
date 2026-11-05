@@ -1,7 +1,12 @@
 import { AppError, ERROR_CODES, redactSecrets, type ActivityEventType } from "@commitscibble/shared";
 import type { DocumentationAi } from "@commitscibble/ai-engine";
 import type { EmailSender } from "@commitscibble/email";
-import { GitHubClient, GitHubError } from "@commitscibble/github";
+import {
+  GitHubClient,
+  GitHubError,
+  getInstallationToken,
+  normalizePrivateKey,
+} from "@commitscibble/github";
 import {
   DocumentationRun,
   Repository,
@@ -21,6 +26,19 @@ export interface WorkerDeps {
   ai: DocumentationAi;
   email: EmailSender;
   nudgeOutbox: () => Promise<void>;
+}
+
+export class RunCancelledError extends Error {
+  constructor(runId: string) {
+    super(`Run ${runId} was cancelled`);
+    this.name = "RunCancelledError";
+  }
+}
+
+/** Cheap checkpoint: nothing is written to GitHub after a cancellation. */
+export async function assertRunActive(runId: string): Promise<void> {
+  const current = await DocumentationRun.findById(runId).select("status").lean();
+  if (current?.status === "CANCELLED") throw new RunCancelledError(String(runId));
 }
 
 export interface PreparedRun {
@@ -63,7 +81,21 @@ export async function claimRun(runId: string): Promise<DocumentationRunDocument 
   );
 }
 
-export async function getGitHubClient(env: Env, userId: string): Promise<GitHubClient> {
+export async function getGitHubClient(
+  env: Env,
+  userId: string,
+  installationId?: number | null,
+): Promise<GitHubClient> {
+  if (installationId && env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY) {
+    const token = await getInstallationToken({
+      appId: env.GITHUB_APP_ID,
+      privateKey: normalizePrivateKey(env.GITHUB_APP_PRIVATE_KEY),
+      installationId,
+      baseUrl: env.GITHUB_API_BASE_URL,
+    });
+    return new GitHubClient({ token, baseUrl: env.GITHUB_API_BASE_URL });
+  }
+
   const user = await User.findById(userId).select("+githubTokenEncrypted");
   if (!user?.githubTokenEncrypted) {
     throw new AppError(
@@ -90,7 +122,11 @@ export async function prepareRun(deps: WorkerDeps, runId: string): Promise<Prepa
   }
 
   try {
-    const client = await getGitHubClient(deps.env, String(run.userId));
+    const client = await getGitHubClient(
+      deps.env,
+      String(run.userId),
+      repository.githubInstallationId,
+    );
     const branch = repository.settings.targetBranch ?? repository.defaultBranch;
     const branchInfo = await client.getBranch(repository.owner, repository.name, branch);
     return { run, repository, client, branch, headSha: branchInfo.sha };
@@ -131,10 +167,16 @@ export async function succeedRun(
   message: string,
   options: { metadata?: Record<string, string | number | boolean> | null } = {},
 ): Promise<void> {
-  await DocumentationRun.updateOne(
-    { _id: prepared.run._id },
+  const updated = await DocumentationRun.updateOne(
+    { _id: prepared.run._id, status: "RUNNING" },
     { $set: { status: "SUCCEEDED", completedAt: new Date(), errorCode: null, errorMessage: null } },
   );
+  if (updated.modifiedCount === 0) {
+    deps.logger.info("Run is no longer RUNNING; skipping success transition", {
+      runId: String(prepared.run._id),
+    });
+    return;
+  }
   prepared.run.status = "SUCCEEDED";
   await emitRunEvent(deps, prepared, "SUCCESS", message, { metadata: options.metadata ?? null });
 }
@@ -144,6 +186,13 @@ export async function failRun(
   run: DocumentationRunDocument,
   error: unknown,
 ): Promise<void> {
+  if (error instanceof RunCancelledError) {
+    deps.logger.info("Run was cancelled; stopping before marking it failed", {
+      runId: String(run._id),
+    });
+    void deps.nudgeOutbox().catch(() => undefined);
+    return;
+  }
   const appError =
     error instanceof AppError
       ? error
@@ -152,7 +201,7 @@ export async function failRun(
         });
   const message = safeErrorMessage(appError);
   try {
-    await DocumentationRun.updateOne(
+    const updated = await DocumentationRun.updateOne(
       { _id: run._id, status: "RUNNING" },
       {
         $set: {
@@ -163,6 +212,12 @@ export async function failRun(
         },
       },
     );
+    if (updated.modifiedCount === 0) {
+      deps.logger.info("Run is no longer RUNNING; skipping failure transition", {
+        runId: String(run._id),
+      });
+      return;
+    }
     run.status = "FAILED";
     const repository = await Repository.findById(run.repositoryId);
     await recordActivity({

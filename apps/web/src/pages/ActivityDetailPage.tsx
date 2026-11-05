@@ -13,12 +13,12 @@ export default function ActivityDetailPage() {
       <div>
         <Link
           to="/dashboard/activity"
-          className="inline-flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-3 w-3" /> Back to activity
         </Link>
-        <h1 className="mt-2 text-xl font-semibold tracking-tight">Activity event</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <h1 className="type-page-title mt-2">Activity event</h1>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           Correlated audit record. Secrets and repository content are redacted before persistence.
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function ActivityDetailPage() {
       ) : event.isError || !event.data ? (
         <Card>
           <CardContent>
-            <p className="text-xs text-danger">
+            <p className="text-sm leading-relaxed text-danger">
               This activity event could not be loaded. It may have expired under the retention policy.
             </p>
           </CardContent>
@@ -50,7 +50,7 @@ export default function ActivityDetailPage() {
                 ) : null}
               </div>
               <p className="text-sm">{event.data.message}</p>
-              <dl className="grid gap-3 text-2xs sm:grid-cols-2">
+              <dl className="grid gap-3 text-xs sm:grid-cols-2">
                 <Field label="Log id" value={event.data.logId} mono />
                 <Field label="Event id" value={event.data.eventId} mono />
                 <Field label="Job id" value={event.data.jobId ?? "—"} mono />
@@ -59,7 +59,7 @@ export default function ActivityDetailPage() {
                 <Field label="Recorded" value={formatDate(event.data.createdAt)} />
               </dl>
 
-              <div className="flex flex-wrap gap-3 border-t border-border pt-3 text-2xs">
+              <div className="flex flex-wrap gap-3 border-t border-border pt-3 text-xs">
                 {event.data.repositoryId ? (
                   <Link
                     to={`/dashboard/repositories/${event.data.repositoryId}`}
@@ -88,14 +88,14 @@ export default function ActivityDetailPage() {
               {event.data.metadata && Object.keys(event.data.metadata).length > 0 ? (
                 <dl className="space-y-2">
                   {Object.entries(event.data.metadata).map(([key, value]) => (
-                    <div key={key} className="flex items-start justify-between gap-3 text-2xs">
+                    <div key={key} className="flex items-start justify-between gap-3 text-xs">
                       <dt className="font-mono text-muted-foreground">{key}</dt>
                       <dd className="max-w-[60%] break-all text-right">{String(value)}</dd>
                     </div>
                   ))}
                 </dl>
               ) : (
-                <p className="text-2xs text-muted-foreground">No additional metadata was recorded.</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">No additional metadata was recorded.</p>
               )}
             </CardContent>
           </Card>

@@ -69,7 +69,11 @@ export function ActivityTimeline({
         const Icon = meta.icon;
         const logId = "logId" in event ? event.logId : null;
         return (
-          <li key={event.eventId} className="relative flex gap-3 py-2">
+          <li
+            key={event.eventId}
+            className="motion-event-in relative flex gap-3 py-2"
+            style={{ animationDelay: `${Math.min(index, 6) * 22}ms` }}
+          >
             {index < events.length - 1 ? (
               <span
                 aria-hidden
@@ -87,8 +91,8 @@ export function ActivityTimeline({
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                <p className="text-xs font-medium">{event.message}</p>
-                <span className="text-2xs text-muted-foreground" title={formatDate(event.createdAt)}>
+                <p className="text-sm font-medium">{event.message}</p>
+                <span className="text-xs text-muted-foreground" title={formatDate(event.createdAt)}>
                   {relativeTime(event.createdAt)}
                 </span>
                 {event.progress ? (
@@ -97,7 +101,7 @@ export function ActivityTimeline({
                   </Badge>
                 ) : null}
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-2xs text-muted-foreground">
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 {showRepository && event.repositoryFullName ? (
                   <span className="font-mono">{event.repositoryFullName}</span>
                 ) : null}
@@ -122,7 +126,7 @@ export function ActivityTimeline({
 export function DiffViewer({ diff, className }: { diff: string; className?: string }) {
   if (!diff.trim()) {
     return (
-      <div className="rounded-md border border-border bg-muted/40 p-6 text-center text-xs text-muted-foreground">
+      <div className="rounded-md border border-border bg-muted/40 p-6 text-center text-sm leading-relaxed text-muted-foreground">
         The proposed documentation is identical to the current README.
       </div>
     );
@@ -165,15 +169,15 @@ export function RunRow({ run, repositoryId }: { run: RunSummary; repositoryId?: 
     <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
       <StatusPill value={run.status} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium">{operationLabel(run.operation)}</p>
-        <p className="mt-0.5 text-2xs text-muted-foreground">
+        <p className="truncate text-sm font-medium">{operationLabel(run.operation)}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {relativeTime(run.createdAt)}
           {run.provider ? ` · ${run.provider}/${run.model ?? "?"}` : ""}
           {run.appliedCommitSha ? ` · ${shortSha(run.appliedCommitSha)}` : ""}
         </p>
       </div>
       {run.errorMessage ? (
-        <p className="w-full truncate text-2xs text-danger" title={run.errorMessage}>
+        <p className="w-full truncate text-sm text-danger" title={run.errorMessage}>
           {run.errorMessage}
         </p>
       ) : null}
@@ -181,14 +185,14 @@ export function RunRow({ run, repositoryId }: { run: RunSummary; repositoryId?: 
         {repositoryId ? (
           <Link
             to={`/dashboard/repositories/${repositoryId}`}
-            className="text-2xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground"
           >
             Repository
           </Link>
         ) : null}
         <Link
           to={reviewLink}
-          className="text-2xs font-medium text-accent hover:underline"
+          className="text-xs font-medium text-accent hover:underline"
         >
           {run.proposalId ? "Review" : "Details"}
         </Link>
@@ -205,7 +209,7 @@ export function RepoStatusSummary({
   lastSuccessfulRunAt: string | null;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 text-2xs text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
       <StatusPill value={documentationStatus} />
       <span>Last successful update: {lastSuccessfulRunAt ? relativeTime(lastSuccessfulRunAt) : "never"}</span>
     </div>

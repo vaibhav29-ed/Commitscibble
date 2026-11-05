@@ -5,7 +5,7 @@ import {
   isSelfAuthoredPush,
   parsePushPayload,
 } from "@commitscibble/github";
-import { WebhookDelivery } from "@commitscibble/persistence";
+import { Repository, WebhookDelivery } from "@commitscibble/persistence";
 import type { JobQueue } from "../lib/queue.js";
 import type { Logger } from "../lib/logger.js";
 import type { RepositoryService } from "./repositories.js";
@@ -94,6 +94,13 @@ export class WebhookService {
         message: "Repository is not connected or tracking is disabled",
         deliveryId: input.deliveryId,
       };
+    }
+
+    if (payload.installation?.id && repository.githubInstallationId !== payload.installation.id) {
+      await Repository.updateOne(
+        { _id: repository._id },
+        { $set: { githubInstallationId: payload.installation.id } },
+      );
     }
 
     const targetBranch = repository.settings.targetBranch ?? repository.defaultBranch;

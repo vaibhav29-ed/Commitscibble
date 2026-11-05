@@ -43,7 +43,8 @@ export class WorkerQueueProducer {
 
   async nudgeOutbox(): Promise<void> {
     const bucket = Math.floor(Date.now() / 2000);
-    await this.outboxQueue().add(JOB_NAMES.OUTBOX_DELIVER, {}, { jobId: `outbox:${bucket}` });
+    // BullMQ rejects custom ids containing ":".
+    await this.outboxQueue().add(JOB_NAMES.OUTBOX_DELIVER, {}, { jobId: `outbox-${bucket}` });
   }
 
   async close(): Promise<void> {

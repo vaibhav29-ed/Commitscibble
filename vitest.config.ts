@@ -37,5 +37,21 @@ export default defineConfig({
     testTimeout: 20_000,
     hookTimeout: 20_000,
     reporters: ["default"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text"],
+      include: [
+        "packages/*/src/**/*.ts",
+        "services/*/src/**/*.ts",
+        "apps/web/src/**/*.{ts,tsx}",
+      ],
+      exclude: ["**/*.test.*", "**/*.d.ts"],
+      thresholds: {
+        statements: 33,
+        branches: 68,
+        functions: 45,
+        lines: 33,
+      },
+    },
   },
 });

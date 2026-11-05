@@ -36,7 +36,10 @@ transitions and GitHub writes.
    the next provider. Invalid requests and auth failures are not retried.
 6. `packages/documentation-engine` assembles a README deterministically from the
    validated model output, then validates commands, paths, env names, links,
-   duplicate headings and unsupported claims against the inventory.
+   duplicate headings and unsupported claims against the inventory. The evidence
+   paths each section cites are audited against the same inventory: a citation
+   that does not exist triggers one bounded repair request, and any remaining
+   problem is recorded as a proposal warning rather than silently accepted.
 7. The proposal is stored with `baseReadmeHash`, `baseCommitSha`, diff and
    validation findings. In review mode the repository becomes `PENDING_REVIEW`; in
    automatic mode an apply job is enqueued immediately.
@@ -73,8 +76,10 @@ the run outcome, and the pipeline works exactly the same when email is disabled.
    hand-written prose) are carried over verbatim. Uncertain mappings produce a
    review flag, not an invented edit.
 7. Validation runs, a unified diff is produced, and the proposal is applied
-   automatically or queued for review. `lastProcessedCommitSha` advances only after
-   a successful apply or a no-op, never merely because a job ran.
+   automatically or queued for review. Automatic apply is withheld in favour of
+   review when the impact classification flagged the change or the model reported
+   low confidence for a patch. `lastProcessedCommitSha` advances only after a
+   successful apply or a no-op, never merely because a job ran.
 
 ## Apply and concurrency
 
@@ -112,8 +117,14 @@ out-of-order or missed events self-heal.
 ```
 QUEUED -> RUNNING -> SUCCEEDED
               |  \-> FAILED -> RETRYING -> RUNNING
-              \-> CANCELLED (not exposed for in-flight runs)
+              \-> CANCELLED (user-initiated; the worker stops at its next checkpoint)
 ```
+
+Cancellation is a conditional write from the API, so a run cannot be cancelled
+twice or after it finished. The worker re-reads the run status before each AI
+call and immediately before writing to GitHub, and a cancelled run is never
+marked failed or successful afterwards. Removing a still-waiting BullMQ job is
+best effort; an active job stops at those checkpoints instead.
 
 Legal transitions are enforced in the persistence layer. Retries increment
 `attempts`, keep the same run and correlation id, use exponential backoff, and are
@@ -146,8 +157,10 @@ prompts. Audit and delivery records expire per `AUDIT_RETENTION_DAYS` and
   categories of hallucinated structure.
 - **MongoDB as the source of truth, Convex as a projection.** Realtime is
   best-effort and replayable; correctness never depends on a subscription.
-- **No GitHub App in this build.** OAuth is simpler to operate and sufficient for
-  per-user repository access; installation tokens remain the documented next step.
+- **Optional GitHub App.** OAuth identifies the user and lists repositories. When
+  `GITHUB_APP_*` is configured, repository writes use short-lived installation
+  tokens (minted with an RS256 App JWT and cached until shortly before expiry);
+  the OAuth token remains the fallback and the listing credential.
 - **Provider-neutral AI layer.** Prompts and schemas live in one package; adding a
   provider means implementing one interface and registering it.
 - **Safe defaults.** Review mode, no silent README overwrite, no commit on no-op,

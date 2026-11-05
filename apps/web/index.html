@@ -8,17 +8,20 @@
       name="description"
       content="CommitScibble connects to your GitHub repositories, generates README documentation from real source code, and updates only the sections affected by each push."
     />
-    <meta name="theme-color" content="#09090b" />
+    <meta name="theme-color" content="#ebe5e3" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,400..600&family=Geist+Mono:wght@400..500&display=swap"
+      rel="stylesheet"
+    />
     <script>
       (function () {
         try {
           var stored = localStorage.getItem("cs-theme");
-          var dark =
-            stored === "dark" ||
-            (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          if (dark) document.documentElement.classList.add("dark");
+          if (stored === "dark") document.documentElement.classList.add("dark");
         } catch (error) {
           /* theme preference is optional */
         }

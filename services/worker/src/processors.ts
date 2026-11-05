@@ -1,7 +1,7 @@
 import { AppError, ERROR_CODES, JOB_NAMES } from "@commitscibble/shared";
 import type { Job } from "bullmq";
 import type { DocumentationJobData, WebhookJobData } from "./queue.js";
-import type { WorkerDeps } from "./lib/context.js";
+import { RunCancelledError, type WorkerDeps } from "./lib/context.js";
 import { runGenerate, executeFullGeneration } from "./pipelines/generate.js";
 import { runIncremental } from "./pipelines/incremental.js";
 import { runCleanup } from "./pipelines/cleanup.js";
@@ -47,6 +47,7 @@ async function runResync(deps: WorkerDeps, data: DocumentationJobData): Promise<
       summaryPrefix: "README resynchronized with the current repository state.",
     });
   } catch (error) {
+    if (error instanceof RunCancelledError) return;
     await failRun(deps, prepared.run, error);
     throw error;
   }
@@ -76,6 +77,7 @@ async function runApply(deps: WorkerDeps, data: DocumentationJobData): Promise<v
       proposal,
     });
   } catch (error) {
+    if (error instanceof RunCancelledError) return;
     await failRun(deps, prepared.run, error);
     throw error;
   }

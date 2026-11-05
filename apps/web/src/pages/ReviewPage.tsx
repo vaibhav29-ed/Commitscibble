@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  ChevronDown,
+  Code2,
   Download,
   ExternalLink,
   GitCommitHorizontal,
@@ -12,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useProposal, useReviewActions, useRun } from "../lib/query";
+import type { ProposalDetail } from "../lib/api";
 import {
   Badge,
   Button,
@@ -26,10 +30,33 @@ import {
   StatusPill,
   Tabs,
 } from "../components/ui";
-import { ActivityTimeline, DiffViewer, operationLabel } from "../components/activity";
+import { ActivityTimeline, operationLabel } from "../components/activity";
+import { ReviewCockpit } from "../components/review-cockpit";
+import { cn } from "../lib/cn";
 import { formatDate, relativeTime, shortSha } from "../lib/format";
 
 type ViewTab = "diff" | "proposed" | "original";
+
+interface AppliedReceiptState {
+  runId: string;
+  status: "APPROVED" | "APPLIED";
+  appliedCommitSha: string | null;
+  reviewedAt: string | null;
+  applyRunId: string | null;
+}
+
+function runViewTransition(update: () => void) {
+  if (
+    typeof document.startViewTransition === "function" &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    document.startViewTransition(() => {
+      flushSync(update);
+    });
+    return;
+  }
+  update();
+}
 
 export default function ReviewPage() {
   const { runId } = useParams<{ runId: string }>();
@@ -41,6 +68,8 @@ export default function ReviewPage() {
   const [tab, setTab] = useState<ViewTab>("diff");
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmReject, setConfirmReject] = useState(false);
+  const [receipt, setReceipt] = useState<AppliedReceiptState | null>(null);
+  const [showAppliedDiff, setShowAppliedDiff] = useState(false);
 
   if (run.isPending) {
     return (
@@ -55,11 +84,11 @@ export default function ReviewPage() {
     return (
       <Card>
         <CardContent>
-          <p className="text-xs text-danger">
+          <p className="text-sm leading-relaxed text-danger">
             This run could not be loaded.{" "}
             {run.error instanceof Error ? run.error.message : "Unknown error."}
           </p>
-          <Link to="/dashboard/activity" className="mt-3 inline-block text-2xs text-accent hover:underline">
+          <Link to="/dashboard/activity" className="mt-3 inline-block text-xs text-accent hover:underline">
             Back to activity
           </Link>
         </CardContent>
@@ -71,6 +100,22 @@ export default function ReviewPage() {
   const detail = proposal.data?.proposal;
   const isActive = ["QUEUED", "RUNNING", "RETRYING"].includes(summary.status);
   const canReview = detail?.status === "PENDING";
+  const localReceipt = receipt?.runId === summary.id ? receipt : null;
+  const receiptFromDetail: AppliedReceiptState | null =
+    detail && (detail.status === "APPROVED" || detail.status === "APPLIED")
+      ? {
+          runId: summary.id,
+          status: detail.status,
+          appliedCommitSha: detail.appliedCommitSha,
+          reviewedAt: detail.reviewedAt,
+          applyRunId: localReceipt?.applyRunId ?? null,
+        }
+      : null;
+  const appliedReceipt =
+    receiptFromDetail ?? (detail?.status === "PENDING" || !detail ? localReceipt : null);
+  const openApproveDialog = () => {
+    runViewTransition(() => setConfirmApprove(true));
+  };
   const downloadMarkdown = () => {
     if (!detail) return;
     const blob = new Blob([detail.proposedContent], { type: "text/markdown" });
@@ -88,11 +133,11 @@ export default function ReviewPage() {
         <div>
           <Link
             to="/dashboard/activity"
-            className="inline-flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-3 w-3" /> Activity
           </Link>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight">
+          <h1 className="type-page-title mt-2">
             {operationLabel(summary.operation)}
             {repositoryFullName ? (
               <span className="ml-2 font-mono text-sm font-normal text-muted-foreground">
@@ -118,7 +163,12 @@ export default function ReviewPage() {
               <Button variant="outline" size="sm" onClick={() => setConfirmReject(true)}>
                 <XCircle className="h-3.5 w-3.5" /> Reject
               </Button>
-              <Button size="sm" onClick={() => setConfirmApprove(true)} loading={actions.approve.isPending}>
+              <Button
+                size="sm"
+                onClick={openApproveDialog}
+                loading={actions.approve.isPending}
+                style={{ viewTransitionName: confirmApprove ? "none" : "review-dialog" }}
+              >
                 <CheckCircle2 className="h-3.5 w-3.5" /> Approve &amp; apply
               </Button>
             </>
@@ -143,12 +193,12 @@ export default function ReviewPage() {
           <CardContent className="flex items-start gap-3">
             <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
             <div>
-              <p className="text-xs font-medium">Run failed</p>
-              <p className="mt-1 text-2xs text-muted-foreground">
+              <p className="text-sm font-medium">Run failed</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 {summary.errorMessage ?? "The operation did not complete."}
               </p>
               {summary.errorCode ? (
-                <p className="mt-1 font-mono text-2xs text-danger">{summary.errorCode}</p>
+                <p className="mt-1 font-mono text-xs text-danger">{summary.errorCode}</p>
               ) : null}
             </div>
           </CardContent>
@@ -169,49 +219,39 @@ export default function ReviewPage() {
       {detail ? (
         <>
           <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            <Card>
-              <CardHeader className="flex-row items-start justify-between gap-3">
-                <div>
-                  <CardTitle>Proposed documentation</CardTitle>
-                  <p className="mt-1 text-2xs text-muted-foreground">{detail.summary}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <CopyButton value={detail.proposedContent} />
-                  <Button variant="ghost" size="sm" onClick={downloadMarkdown}>
-                    <Download className="h-3.5 w-3.5" /> Download
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Tabs
-                  active={tab}
-                  onChange={(value) => setTab(value as ViewTab)}
-                  tabs={[
-                    { id: "diff", label: "Unified diff" },
-                    { id: "proposed", label: "Proposed" },
-                    { id: "original", label: "Original" },
-                  ]}
+            {appliedReceipt ? (
+              <ReviewPanelFrame>
+                <AppliedReceiptCard
+                  detail={detail}
+                  repositoryFullName={repositoryFullName}
+                  receipt={appliedReceipt}
+                  tab={tab}
+                  onTabChange={setTab}
+                  showDiff={showAppliedDiff}
+                  onToggleDiff={() => setShowAppliedDiff((visible) => !visible)}
+                  onDownload={downloadMarkdown}
                 />
-                {tab === "diff" ? <DiffViewer diff={detail.diff} /> : null}
-                {tab === "proposed" ? (
-                  <pre className="max-h-[600px] overflow-auto rounded-md border border-border bg-code-bg p-3 font-mono text-xs leading-5">
-                    {detail.proposedContent}
-                  </pre>
-                ) : null}
-                {tab === "original" ? (
-                  detail.originalContent ? (
-                    <pre className="max-h-[600px] overflow-auto rounded-md border border-border bg-code-bg p-3 font-mono text-xs leading-5">
-                      {detail.originalContent}
-                    </pre>
-                  ) : (
-                    <EmptyState
-                      title="No existing README"
-                      description="This proposal creates the documentation file from scratch."
-                    />
-                  )
-                ) : null}
-              </CardContent>
-            </Card>
+              </ReviewPanelFrame>
+            ) : canReview ? (
+              <ReviewPanelFrame>
+                <ProposalCard
+                  detail={detail}
+                  tab={tab}
+                  onTabChange={setTab}
+                  onDownload={downloadMarkdown}
+                  className="rounded-[11px] border-0 shadow-none"
+                  style={{ viewTransitionName: "proposal-panel" }}
+                />
+              </ReviewPanelFrame>
+            ) : (
+              <ProposalCard
+                detail={detail}
+                tab={tab}
+                onTabChange={setTab}
+                onDownload={downloadMarkdown}
+                style={{ viewTransitionName: "proposal-panel" }}
+              />
+            )}
 
             <div className="space-y-4">
               <Card>
@@ -222,12 +262,12 @@ export default function ReviewPage() {
                   {detail.explanations.length > 0 ? (
                     detail.explanations.map((explanation) => (
                       <div key={`${explanation.summary}-${explanation.explanation.slice(0, 12)}`}>
-                        <p className="text-2xs font-medium">{explanation.summary}</p>
-                        <p className="mt-0.5 text-2xs text-muted-foreground">{explanation.explanation}</p>
+                        <p className="text-sm font-medium">{explanation.summary}</p>
+                        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{explanation.explanation}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-2xs text-muted-foreground">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
                       The provider did not return a per-section explanation for this run.
                     </p>
                   )}
@@ -247,7 +287,7 @@ export default function ReviewPage() {
                 <CardHeader>
                   <CardTitle>Review context</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2 text-2xs">
+                <CardContent className="space-y-2 text-xs">
                   <Row label="Base commit" value={detail.baseCommitSha ? shortSha(detail.baseCommitSha) : "—"} mono />
                   <Row label="Base README hash" value={`${detail.baseReadmeHash.slice(0, 12)}…`} mono />
                   <Row label="Diff size" value={`+${detail.additions} / −${detail.deletions}`} />
@@ -275,7 +315,7 @@ export default function ReviewPage() {
                     {detail.validationIssues.slice(0, 12).map((issue, index) => (
                       <p
                         key={`${issue.message}-${index}`}
-                        className={`text-2xs ${issue.severity === "error" ? "text-danger" : "text-warning"}`}
+                        className={`text-sm ${issue.severity === "error" ? "text-danger" : "text-warning"}`}
                       >
                         {issue.severity === "error" ? "Error" : "Warning"}: {issue.message}
                       </p>
@@ -295,7 +335,7 @@ export default function ReviewPage() {
               </CardHeader>
               <CardContent className="space-y-1.5">
                 {[...new Set([...warnings, ...analysisUnsupported])].slice(0, 20).map((warning) => (
-                  <p key={warning} className="text-2xs text-muted-foreground">
+                  <p key={warning} className="text-sm leading-relaxed text-muted-foreground">
                     · {warning}
                   </p>
                 ))}
@@ -303,17 +343,8 @@ export default function ReviewPage() {
             </Card>
           ) : null}
 
-          {detail.status === "APPLIED" ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-success/30 bg-success/5 p-3 text-xs text-success">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Approved documentation has been applied to GitHub.</span>
-              {detail.appliedCommitSha ? (
-                <span className="font-mono text-2xs">{detail.appliedCommitSha}</span>
-              ) : null}
-            </div>
-          ) : null}
           {detail.status === "STALE" ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs text-warning">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-warning">
               <AlertTriangle className="h-4 w-4" />
               <span>
                 This proposal is stale because the README changed after it was generated. Regenerate
@@ -344,7 +375,7 @@ export default function ReviewPage() {
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle>Run events</CardTitle>
-          <span className="text-2xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             Updated {relativeTime(summary.updatedAt)}
           </span>
         </CardHeader>
@@ -358,6 +389,7 @@ export default function ReviewPage() {
         onClose={() => setConfirmApprove(false)}
         title="Approve and apply this proposal?"
         description="The proposed file will be committed to the configured branch in GitHub."
+        style={{ viewTransitionName: "review-dialog" }}
         footer={
           <>
             <Button variant="outline" onClick={() => setConfirmApprove(false)}>
@@ -368,7 +400,19 @@ export default function ReviewPage() {
               onClick={() => {
                 if (!detail) return;
                 actions.approve.mutate(detail.id, {
-                  onSuccess: () => setConfirmApprove(false),
+                  onSuccess: (result) => {
+                    runViewTransition(() => {
+                      setReceipt({
+                        runId: summary.id,
+                        status: "APPROVED",
+                        appliedCommitSha: result.run.appliedCommitSha,
+                        reviewedAt: new Date().toISOString(),
+                        applyRunId: result.run.id,
+                      });
+                      setConfirmApprove(false);
+                      setShowAppliedDiff(false);
+                    });
+                  },
                 });
               }}
             >
@@ -377,7 +421,7 @@ export default function ReviewPage() {
           </>
         }
       >
-        <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-2xs text-muted-foreground">
+        <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm leading-relaxed text-muted-foreground">
           <p>
             Target commit:{" "}
             <span className="font-mono text-foreground">{shortSha(detail?.baseCommitSha)}</span>
@@ -414,6 +458,243 @@ export default function ReviewPage() {
           </>
         }
       />
+    </div>
+  );
+}
+
+function ProposalViews({
+  detail,
+  tab,
+  onTabChange,
+}: {
+  detail: ProposalDetail;
+  tab: ViewTab;
+  onTabChange: (tab: ViewTab) => void;
+}) {
+  return (
+    <>
+      <Tabs
+        active={tab}
+        onChange={(value) => onTabChange(value as ViewTab)}
+        tabs={[
+          { id: "diff", label: "Unified diff" },
+          { id: "proposed", label: "Proposed" },
+          { id: "original", label: "Original" },
+        ]}
+      />
+      {tab === "diff" ? (
+        <ReviewCockpit
+          diff={detail.diff}
+          proposedContent={detail.proposedContent}
+          sections={detail.sections}
+        />
+      ) : null}
+      {tab === "proposed" ? (
+        <pre className="max-h-[600px] overflow-auto rounded-md border border-border bg-code-bg p-3 font-mono text-xs leading-5">
+          {detail.proposedContent}
+        </pre>
+      ) : null}
+      {tab === "original" ? (
+        detail.originalContent ? (
+          <pre className="max-h-[600px] overflow-auto rounded-md border border-border bg-code-bg p-3 font-mono text-xs leading-5">
+            {detail.originalContent}
+          </pre>
+        ) : (
+          <EmptyState
+            title="No existing README"
+            description="This proposal creates the documentation file from scratch."
+          />
+        )
+      ) : null}
+    </>
+  );
+}
+
+function ReviewPanelFrame({ children }: { children: ReactNode }) {
+  return <div className="rounded-xl bg-brand-gradient p-px shadow-card">{children}</div>;
+}
+
+function ProposalCard({
+  detail,
+  tab,
+  onTabChange,
+  onDownload,
+  className,
+  style,
+}: {
+  detail: ProposalDetail;
+  tab: ViewTab;
+  onTabChange: (tab: ViewTab) => void;
+  onDownload: () => void;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <Card style={style} className={className}>
+      <CardHeader className="flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle>Proposed documentation</CardTitle>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{detail.summary}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <CopyButton value={detail.proposedContent} />
+          <Button variant="ghost" size="sm" onClick={onDownload}>
+            <Download className="h-3.5 w-3.5" /> Download
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <ProposalViews detail={detail} tab={tab} onTabChange={onTabChange} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function AppliedReceiptCard({
+  detail,
+  repositoryFullName,
+  receipt,
+  tab,
+  onTabChange,
+  showDiff,
+  onToggleDiff,
+  onDownload,
+}: {
+  detail: ProposalDetail;
+  repositoryFullName: string | null;
+  receipt: AppliedReceiptState;
+  tab: ViewTab;
+  onTabChange: (tab: ViewTab) => void;
+  showDiff: boolean;
+  onToggleDiff: () => void;
+  onDownload: () => void;
+}) {
+  const applied = receipt.status === "APPLIED";
+  const sha = receipt.appliedCommitSha;
+
+  return (
+    <Card
+      style={{ viewTransitionName: "proposal-panel" }}
+      className="overflow-hidden rounded-[11px] border-0 shadow-none"
+    >
+      <CardHeader className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <CardTitle className="font-display text-2xl font-medium leading-tight tracking-[-0.025em]">
+                {applied ? "Documentation applied" : "Documentation approved"}
+              </CardTitle>
+              <StatusPill value={receipt.status} />
+            </div>
+            <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-muted-foreground">
+              {applied
+                ? "The reviewed changes are now committed to the configured branch."
+                : "The apply run is queued. This receipt updates when GitHub confirms the commit."}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <CopyButton value={detail.proposedContent} />
+            <Button variant="ghost" size="sm" onClick={onDownload}>
+              <Download className="h-3.5 w-3.5" /> Download
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4 p-5">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
+          <div className="min-w-0">
+            <p className="text-2xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              {applied ? "Applied commit" : "Commit pending"}
+            </p>
+            {sha ? (
+              <p
+                title={sha}
+                className="mt-1.5 truncate font-mono text-[1.75rem] leading-none tracking-[-0.03em] tabular-nums sm:text-[2rem]"
+              >
+                {shortSha(sha)}
+              </p>
+            ) : (
+              <p className="mt-1.5 font-mono text-xl leading-none text-muted-foreground">
+                Awaiting commit
+              </p>
+            )}
+          </div>
+          {sha && repositoryFullName ? (
+            <a
+              href={`https://github.com/${repositoryFullName}/commit/${sha}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button variant="outline" size="sm">
+                <ExternalLink className="h-3.5 w-3.5" /> View commit
+              </Button>
+            </a>
+          ) : null}
+        </div>
+
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+          <LedgerFact
+            label="Base commit"
+            value={detail.baseCommitSha ? shortSha(detail.baseCommitSha) : "—"}
+            mono
+          />
+          <LedgerFact
+            label="Reviewed"
+            value={receipt.reviewedAt ? formatDate(receipt.reviewedAt) : "Just now"}
+          />
+          <LedgerFact label="Repository" value={repositoryFullName ?? "—"} mono />
+        </dl>
+
+        <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
+          {receipt.applyRunId ? (
+            <Link
+              to={`/dashboard/reviews/${receipt.applyRunId}`}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className="h-3 w-3" /> Apply run {receipt.applyRunId.slice(0, 7)}
+            </Link>
+          ) : null}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto"
+            onClick={onToggleDiff}
+            aria-expanded={showDiff}
+          >
+            <Code2 className="h-3.5 w-3.5" /> {showDiff ? "Hide diff" : "Inspect diff"}
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 transition-transform duration-200 motion-reduce:transition-none",
+                showDiff && "rotate-180",
+              )}
+            />
+          </Button>
+        </div>
+        {showDiff ? (
+          <div className="space-y-3 border-t border-border pt-3">
+            <ProposalViews detail={detail} tab={tab} onTabChange={onTabChange} />
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LedgerFact({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-2xs font-medium uppercase tracking-[0.1em] text-muted-foreground">{label}</dt>
+      <dd className={cn("mt-1 truncate text-[13px] leading-tight", mono && "font-mono text-xs")}>
+        {value}
+      </dd>
     </div>
   );
 }

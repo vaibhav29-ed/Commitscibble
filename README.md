@@ -22,14 +22,18 @@ integration is reported as unconfigured rather than faked.
   with AES-256-GCM and never leave the server.
 - **Generate a README** from a filtered repository inventory: manifests, source
   files, CI, environment examples, tests and existing docs. The generated
-  instructions are validated against the files that were actually read.
+  instructions are validated against the files that were actually read, and the
+  evidence each section cites is checked against the inventory; an invented path
+  triggers one repair pass before a proposal is created.
 - **Update incrementally** on push. Changed paths are classified by documentation
   impact, only affected README sections are regenerated, and unrelated sections are
   preserved byte-for-byte.
 - **Clean up** an existing README: duplicate headings, contradictory sections,
   stale commands and filler are proposed as a reviewable diff.
-- **Review before applying** (default) or apply automatically. Proposals store the
-  base README hash and base commit; if the branch moved, the apply step refuses and
+- **Review before applying** (default) or apply automatically. Automatic apply is
+  withheld when the change was classified as needing review or the model reported
+  low confidence, and the proposal is queued instead. Proposals store the base
+  README hash and base commit; if the branch moved, the apply step refuses and
   marks the proposal stale instead of overwriting newer work.
 - **Watch it happen live** with a Convex-backed activity stream. MongoDB is the
   authoritative record; a transactional outbox in the audit collection makes
@@ -119,6 +123,12 @@ Set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `GITHUB_CALLBACK_URL`. The ap
 requests `read:user`, `user:email` and `repo` (needed to read and write README files
 in private repositories you grant).
 
+Optionally create a GitHub App for installation-scoped repository access: set
+`GITHUB_APP_ID`, `GITHUB_APP_SLUG` and `GITHUB_APP_PRIVATE_KEY`, and use
+`<API_URL>/auth/github/app/callback` as the setup URL. When configured, reads and
+writes for repositories covered by the installation use short-lived installation
+tokens; OAuth remains the identity and repository-listing path.
+
 ### Webhooks
 
 Add a repository or organization webhook to
@@ -169,6 +179,7 @@ header for mutating requests. The served contract is available at
 ```
 GET    /auth/github                     start OAuth (state cookie)
 GET    /auth/github/callback            verify state, exchange code, create session
+GET    /auth/github/app/callback       verify and store a GitHub App installation
 GET    /api/v1/auth/me                  current user + CSRF token + realtime key
 POST   /api/v1/auth/logout              revoke session
 POST   /api/v1/auth/github/revoke       revoke GitHub grant, sessions and repositories
@@ -183,6 +194,7 @@ GET    /api/v1/repositories/:id/runs
 GET    /api/v1/runs/:runId              run + correlated events
 GET    /api/v1/runs/:runId/proposal
 POST   /api/v1/runs/:runId/retry
+POST   /api/v1/runs/:runId/cancel        cancel a queued or running run
 POST   /api/v1/proposals/:proposalId/approve|reject
 GET    /api/v1/activity                 filters: status, operation, repositoryId, page
 GET    /api/v1/activity/:logId
@@ -199,16 +211,20 @@ GET    /health | /ready | /api/v1/meta | /api/v1/openapi.json
 | `pnpm typecheck` | Node workspaces and web |
 | `pnpm lint` | ESLint (flat config) |
 | `pnpm test` | Vitest unit + integration suite |
+| `pnpm test:coverage` | Test suite with coverage thresholds |
 | `pnpm e2e` | Playwright public-surface smoke tests |
 | `pnpm db:indexes` | Create MongoDB indexes |
 
 ## Testing
 
-`pnpm test` runs 146 tests across 19 files: hashing and normalisation, diff and
+`pnpm test` runs 155 tests across 21 files: hashing and normalisation, diff and
 section mapping, changed-file classification, proposal validation, cleanup guards,
-provider fallback, webhook signatures, session/CSRF/permission middleware, API
-route contracts, email delivery and templates, README assembly, incremental
-impact, plus a React component test. External services are mocked in tests; no
+provider fallback, webhook signatures, GitHub App JWT signing and installation
+token caching, session/CSRF/permission middleware, API route contracts, run
+cancellation, rate limiting, email delivery and templates, README assembly,
+incremental impact, plus a React component test.
+`pnpm test:coverage` enforces the committed coverage floor (statements/lines 33%,
+functions 45%, branches 68%). External services are mocked in tests; no
 real repository or credential is required.
 
 `pnpm e2e` runs public-page smoke tests against the Vite server. The authenticated
@@ -226,8 +242,9 @@ initialisation, backups and troubleshooting, are in
 
 ## Limitations (current build)
 
-- GitHub access uses an OAuth app. A GitHub App installation flow is the better
-  long-term model and is not implemented.
+- GitHub sign-in uses an OAuth app. The optional GitHub App provides
+  installation-scoped tokens for repository writes when `GITHUB_APP_*` is set;
+  without it, writes use the OAuth token and its broad `repo` scope.
 - Billing is intentionally not implemented: no paid plans, prices, checkout or
   quota enforcement are exposed, and `BILLING_ENABLED` remains `false`.
 - Transactional email notifications (review required, documentation applied, run

@@ -79,6 +79,7 @@ export interface MetaResponse {
   defaultUpdateMode: "AUTOMATIC" | "REVIEW";
   aiProviders: string[];
   realtime: { convex: boolean };
+  githubApp: { configured: boolean; slug: string | null; installUrl: string | null };
   billingEnabled: boolean;
   retention: { auditDays: number; webhookDays: number };
 }
@@ -179,6 +180,8 @@ export const api = {
     request<{ proposal: ProposalDetail }>(`/api/v1/runs/${runId}/proposal`),
   retryRun: (runId: string) =>
     request<{ run: RunSummary }>(`/api/v1/runs/${runId}/retry`, { method: "POST" }),
+  cancelRun: (runId: string) =>
+    request<{ run: RunSummary }>(`/api/v1/runs/${runId}/cancel`, { method: "POST" }),
   approveProposal: (proposalId: string) =>
     request<{ run: RunSummary }>(`/api/v1/proposals/${proposalId}/approve`, { method: "POST" }),
   rejectProposal: (proposalId: string) =>

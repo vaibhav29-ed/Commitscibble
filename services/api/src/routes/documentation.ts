@@ -55,6 +55,17 @@ export function createDocumentationRouter(deps: {
   );
 
   router.post(
+    "/runs/:runId/cancel",
+    deps.requireAuth,
+    deps.csrf,
+    asyncHandler(async (req, res) => {
+      const { runId } = parseWith(runIdParamSchema, req.params);
+      const run = await deps.runs.cancel(req.user!.id, runId);
+      sendOk(res, { run });
+    }),
+  );
+
+  router.post(
     "/proposals/:proposalId/approve",
     deps.requireAuth,
     deps.csrf,

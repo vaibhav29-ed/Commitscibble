@@ -40,6 +40,9 @@ export const envSchema = z.object({
   GITHUB_WEBHOOK_SECRET: optional(z.string().min(16)),
   GITHUB_API_BASE_URL: z.string().url().default("https://api.github.com"),
   GITHUB_REPOSITORY_LIMIT: z.coerce.number().int().min(1).max(5000).default(500),
+  GITHUB_APP_ID: optional(z.string().regex(/^\d+$/, "GITHUB_APP_ID must be numeric")),
+  GITHUB_APP_SLUG: optional(z.string().min(1)),
+  GITHUB_APP_PRIVATE_KEY: optional(z.string().min(1)),
 
   AI_PROVIDER_PRIMARY: z.enum(["gemini", "groq", "mock"]).default("gemini"),
   AI_PROVIDER_FALLBACK: optional(z.enum(["gemini", "groq", "mock"])),
@@ -53,7 +56,7 @@ export const envSchema = z.object({
   GEMINI_API_KEY: optional(z.string().min(1)),
   GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
   GROQ_API_KEY: optional(z.string().min(1)),
-  GROQ_MODEL: z.string().min(1).default("llama-3.3-70b-versatile"),
+  GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
 
   CONVEX_URL: optional(z.string().url()),
   COMMITSCIBBLE_PUBLISH_TOKEN: optional(z.string().min(16)),
@@ -144,6 +147,21 @@ export function assertServiceEnv(env: Env, requirements: ServiceRequirements): v
         "\nSee .env.example for the complete list.",
     );
   }
+}
+
+export interface GitHubAppEnvConfig {
+  appId: string;
+  slug: string;
+  privateKey: string;
+}
+
+/** Installation-scoped GitHub access is enabled only when all three values exist. */
+export function githubAppConfig(env: Env): GitHubAppEnvConfig | null {
+  if (!env.GITHUB_APP_ID || !env.GITHUB_APP_SLUG || !env.GITHUB_APP_PRIVATE_KEY) return null;
+  const privateKey = env.GITHUB_APP_PRIVATE_KEY.includes("\\n")
+    ? env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n")
+    : env.GITHUB_APP_PRIVATE_KEY;
+  return { appId: env.GITHUB_APP_ID, slug: env.GITHUB_APP_SLUG, privateKey };
 }
 
 export function corsOrigins(env: Env): string[] {

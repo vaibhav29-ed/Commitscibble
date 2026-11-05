@@ -9,7 +9,7 @@ import {
   type DocumentationRunDocument,
   type RepositoryDocument,
 } from "@commitscibble/persistence";
-import { emitRunEvent, type WorkerDeps } from "../lib/context.js";
+import { assertRunActive, emitRunEvent, type WorkerDeps } from "../lib/context.js";
 import { notifyApplied } from "../lib/notifications.js";
 
 export interface ApplyResult {
@@ -95,6 +95,9 @@ export async function applyProposal(args: {
   }
 
   const message = buildCommitMessage(repository.settings.commitMessageTemplate, readmePath);
+
+  // Last checkpoint before the only GitHub write in the pipeline.
+  await assertRunActive(String(prepared.run._id));
 
   let result;
   try {

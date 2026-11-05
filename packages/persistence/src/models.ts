@@ -20,6 +20,7 @@ export interface UserShape {
   email: string | null;
   avatarUrl: string | null;
   githubTokenEncrypted: string | null;
+  githubInstallationId: number | null;
   tokenScopes: string[];
   tokenUpdatedAt: Date | null;
   status: "ACTIVE" | "DISCONNECTED";
@@ -35,6 +36,7 @@ const UserSchema = new Schema<UserShape>(
     email: { type: String, default: null },
     avatarUrl: { type: String, default: null },
     githubTokenEncrypted: { type: String, default: null, select: false },
+    githubInstallationId: { type: Number, default: null },
     tokenScopes: { type: [String], default: [] },
     tokenUpdatedAt: { type: Date, default: null },
     status: { type: String, enum: ["ACTIVE", "DISCONNECTED"], default: "ACTIVE" },
@@ -97,6 +99,7 @@ export interface RepositoryShape {
   htmlUrl: string;
   description: string | null;
   trackingStatus: (typeof TRACKING_STATUSES)[number];
+  githubInstallationId: number | null;
   settings: RepositorySettingsShape;
   lastProcessedCommitSha: string | null;
   lastAppliedCommitSha: string | null;
@@ -136,6 +139,7 @@ const RepositorySchema = new Schema<RepositoryShape>(
     htmlUrl: { type: String, required: true },
     description: { type: String, default: null },
     trackingStatus: { type: String, enum: TRACKING_STATUSES, default: "CONNECTED", index: true },
+    githubInstallationId: { type: Number, default: null },
     settings: { type: RepositorySettingsSchema, required: true, default: () => ({}) },
     lastProcessedCommitSha: { type: String, default: null },
     lastAppliedCommitSha: { type: String, default: null },
@@ -348,7 +352,9 @@ export interface AuditLogShape {
 
 const AuditLogSchema = new Schema<AuditLogShape>(
   {
-    logId: { type: String, required: true, unique: true, index: true },
+    // Shared by every audit event of a run (the run's correlation id), so it
+    // must not be unique. `eventId` is the unique identifier of a single event.
+    logId: { type: String, required: true, index: true },
     eventId: { type: String, required: true, unique: true },
     jobId: { type: String, default: null },
     runId: { type: Schema.Types.ObjectId, ref: "DocumentationRun", default: null, index: true },

@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ExternalLink, GitBranch, Loader2, Lock, Pause, Play, ShieldCheck } from "lucide-react";
 import { SECTION_KEYS, SECTION_TITLES, type SectionKey } from "@commitscibble/shared";
-import { useRepository, useRepositorySettings, useRepositoryTracking } from "../lib/query";
+import {
+  useCancelRun,
+  useRepository,
+  useRepositorySettings,
+  useRepositoryTracking,
+} from "../lib/query";
 import {
   Badge,
   Button,
@@ -38,6 +43,7 @@ export default function RepositoryDetailPage() {
   const detail = useRepository(id);
   const save = useRepositorySettings(id ?? "");
   const tracking = useRepositoryTracking(id ?? "");
+  const cancel = useCancelRun();
   const [form, setForm] = useState<SettingsForm | null>(null);
 
   const repository = detail.data?.repository;
@@ -68,11 +74,11 @@ export default function RepositoryDetailPage() {
     return (
       <Card>
         <CardContent>
-          <p className="text-xs text-danger">
+          <p className="text-sm leading-relaxed text-danger">
             This repository could not be loaded.{" "}
             {detail.error instanceof Error ? detail.error.message : ""}
           </p>
-          <Link to="/dashboard/repositories" className="mt-3 inline-block text-2xs text-accent hover:underline">
+          <Link to="/dashboard/repositories" className="mt-3 inline-block text-xs text-accent hover:underline">
             Back to repositories
           </Link>
         </CardContent>
@@ -103,12 +109,12 @@ export default function RepositoryDetailPage() {
         <div className="min-w-0">
           <Link
             to="/dashboard/repositories"
-            className="inline-flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-3 w-3" /> Repositories
           </Link>
-          <h1 className="mt-2 truncate text-xl font-semibold tracking-tight">{repository.fullName}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-2xs text-muted-foreground">
+          <h1 className="type-page-title mt-2 truncate">{repository.fullName}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge tone="outline">
               <GitBranch className="h-3 w-3" /> {repository.defaultBranch}
             </Badge>
@@ -146,7 +152,7 @@ export default function RepositoryDetailPage() {
       </div>
 
       {activeRun ? (
-        <div className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3 text-xs">
+        <div className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3 text-sm">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
           <p>
             <span className="font-medium">{operationLabel(activeRun.operation)}</span> is{" "}
@@ -156,6 +162,15 @@ export default function RepositoryDetailPage() {
             </Link>
             .
           </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            loading={cancel.isPending}
+            onClick={() => cancel.mutate(activeRun.id)}
+          >
+            Cancel run
+          </Button>
         </div>
       ) : null}
 
@@ -177,10 +192,10 @@ export default function RepositoryDetailPage() {
         <Card className="border-warning/40">
           <CardContent className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="flex items-center gap-2 text-xs font-medium">
+              <p className="flex items-center gap-2 text-sm font-medium">
                 <ShieldCheck className="h-4 w-4 text-warning" /> Proposal awaiting review
               </p>
-              <p className="mt-1 text-2xs text-muted-foreground">
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 {detail.data.pendingProposal.summary} · +{detail.data.pendingProposal.additions} / −
                 {detail.data.pendingProposal.deletions} lines · created{" "}
                 {relativeTime(detail.data.pendingProposal.createdAt)}
@@ -198,7 +213,7 @@ export default function RepositoryDetailPage() {
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Documentation settings</CardTitle>
-              <p className="text-2xs text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Applies to automatic updates and manual runs for this repository.
               </p>
             </div>
@@ -206,7 +221,7 @@ export default function RepositoryDetailPage() {
               href={repository.readmeUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="inline-flex items-center gap-1 text-2xs text-accent hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
             >
               Open README <ExternalLink className="h-3 w-3" />
             </a>
@@ -289,8 +304,8 @@ export default function RepositoryDetailPage() {
 
                 <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
                   <div>
-                    <p className="text-xs font-medium">Automation enabled</p>
-                    <p className="mt-0.5 text-2xs text-muted-foreground">
+                    <p className="text-sm font-medium">Automation enabled</p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
                       When off, webhook-triggered runs are skipped. Manual actions still work.
                     </p>
                   </div>
@@ -323,7 +338,7 @@ export default function RepositoryDetailPage() {
                     {SECTION_KEYS.map((key) => (
                       <label
                         key={key}
-                        className="flex items-center gap-2 rounded border border-border px-2 py-1 text-2xs"
+                        className="flex items-center gap-2 rounded border border-border px-2 py-1 text-xs"
                       >
                         <input
                           type="checkbox"
@@ -338,7 +353,7 @@ export default function RepositoryDetailPage() {
                 </div>
 
                 <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-                  <p className="text-2xs text-muted-foreground">
+                  <p className="text-xs leading-relaxed text-muted-foreground">
                     Changes to the branch are validated against GitHub.
                   </p>
                   <Button type="submit" size="sm" loading={save.isPending}>
@@ -356,9 +371,9 @@ export default function RepositoryDetailPage() {
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Recent runs</CardTitle>
-              <p className="text-2xs text-muted-foreground">Latest ten documentation operations</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">Latest ten documentation operations</p>
             </div>
-            <Link to={`/dashboard/activity?repositoryId=${repository.id}`} className="text-2xs text-accent hover:underline">
+            <Link to={`/dashboard/activity?repositoryId=${repository.id}`} className="text-xs text-accent hover:underline">
               All activity
             </Link>
           </CardHeader>
@@ -384,7 +399,7 @@ export default function RepositoryDetailPage() {
         <CardHeader>
           <CardTitle>Repository metadata</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 text-2xs sm:grid-cols-2 lg:grid-cols-4">
+        <CardContent className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
           <InfoTile label="GitHub repository id" value={String(repository.githubRepoId)} mono />
           <InfoTile label="Connected" value={formatDate(repository.createdAt)} />
           <InfoTile label="Last processed commit" value={repository.lastProcessedCommitSha ?? "—"} mono />
@@ -398,8 +413,8 @@ export default function RepositoryDetailPage() {
 function InfoTile({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="rounded-md border border-border bg-muted/30 p-3">
-      <p className="text-2xs text-muted-foreground">{label}</p>
-      <p className={`mt-1 break-all text-xs ${mono ? "font-mono" : ""}`}>{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`mt-1 break-all text-sm ${mono ? "font-mono" : ""}`}>{value}</p>
     </div>
   );
 }

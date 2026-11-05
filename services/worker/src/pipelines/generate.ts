@@ -1,14 +1,17 @@
-import { AppError, ERROR_CODES, type SectionKey } from "@commitscibble/shared";
+import { AppError, ERROR_CODES, type ReadmeDraft, type SectionKey } from "@commitscibble/shared";
 import { Repository, DocumentationRun } from "@commitscibble/persistence";
 import {
   assembleReadme,
+  auditEvidenceGrounding,
   selectEvidenceFiles,
   validateReadme,
 } from "@commitscibble/documentation-engine";
 import {
+  assertRunActive,
   emitRunEvent,
   failRun,
   prepareRun,
+  RunCancelledError,
   succeedRun,
   type PreparedRun,
   type WorkerDeps,
@@ -31,6 +34,7 @@ export async function runGenerate(
       reason: "Full README generation",
     });
   } catch (error) {
+    if (error instanceof RunCancelledError) return;
     await failRun(deps, prepared.run, error);
     throw error;
   }
@@ -85,59 +89,81 @@ export async function executeFullGeneration(
   await emitRunEvent(deps, prepared, "PROGRESS", "Generating documentation with the configured AI provider", {
     progress: { step: 3, total: TOTAL_STEPS },
   });
+  await assertRunActive(String(run._id));
   const first = await generate();
-  let markdown = assembleReadme(first.data);
-  let validation = validateReadme(markdown, {
-    analysis,
-    knownPaths: knownPaths(state),
-    inventoryTruncated: state.snapshot.inventory.truncated,
-    readmePath: repository.settings.readmePath,
-  });
-  const warnings = [...first.warnings, ...first.data.warnings];
-
-  if (validation.hasBlockingErrors) {
-    await emitRunEvent(
-      deps,
-      prepared,
-      "PROGRESS",
-      "Generated README failed validation; requesting one repair pass",
-      { progress: { step: 3, total: TOTAL_STEPS } },
-    );
-    const repair = await generate(
-      validation.issues.filter((issue) => issue.severity === "error").map((issue) => issue.message),
-    );
-    markdown = assembleReadme(repair.data);
-    warnings.push(...repair.warnings, ...repair.data.warnings);
-    validation = validateReadme(markdown, {
+  let draft: ReadmeDraft = first.data;
+  let provider = first.provider;
+  let model = first.model;
+  let markdown = assembleReadme(draft);
+  const validate = (value: string) =>
+    validateReadme(value, {
       analysis,
       knownPaths: knownPaths(state),
       inventoryTruncated: state.snapshot.inventory.truncated,
       readmePath: repository.settings.readmePath,
     });
-    warnings.push(...validation.issues.filter((i) => i.severity === "warning").map((i) => i.message));
-    if (validation.hasBlockingErrors) {
-      throw new AppError(
-        ERROR_CODES.README_VALIDATION_FAILED,
-        `Generated README failed validation: ${validation.issues
-          .filter((issue) => issue.severity === "error")
-          .map((issue) => issue.message)
-          .join("; ")}`,
-        {
-          httpStatus: 422,
-          details: validation.issues,
-        },
-      );
-    }
-  } else {
-    warnings.push(...validation.issues.filter((i) => i.severity === "warning").map((i) => i.message));
+  const audit = (value: ReadmeDraft) =>
+    auditEvidenceGrounding(value.sections, {
+      knownPaths: knownPaths(state),
+      inventoryTruncated: state.snapshot.inventory.truncated,
+    });
+  let validation = validate(markdown);
+  let grounding = audit(draft);
+  const warnings = [...first.warnings, ...first.data.warnings];
+
+  if (validation.hasBlockingErrors || grounding.needsRepair) {
+    const feedback = [
+      ...validation.issues
+        .filter((issue) => issue.severity === "error")
+        .map((issue) => issue.message),
+      ...grounding.feedback,
+    ];
+    await emitRunEvent(
+      deps,
+      prepared,
+      "PROGRESS",
+      validation.hasBlockingErrors
+        ? "Generated README failed validation; requesting one repair pass"
+        : "Generated README cited repository files that do not exist; requesting one repair pass",
+      { progress: { step: 3, total: TOTAL_STEPS } },
+    );
+    const repair = await generate(feedback.slice(0, 16));
+    draft = repair.data;
+    provider = repair.provider;
+    model = repair.model;
+    markdown = assembleReadme(draft);
+    warnings.push(...repair.warnings, ...repair.data.warnings);
+    validation = validate(markdown);
+    grounding = audit(draft);
+  }
+  warnings.push(
+    ...validation.issues
+      .filter((issue) => issue.severity === "warning")
+      .map((issue) => issue.message),
+    ...grounding.warnings,
+  );
+  if (validation.hasBlockingErrors) {
+    throw new AppError(
+      ERROR_CODES.README_VALIDATION_FAILED,
+      `Generated README failed validation: ${validation.issues
+        .filter((issue) => issue.severity === "error")
+        .map((issue) => issue.message)
+        .join("; ")}`,
+      {
+        httpStatus: 422,
+        details: validation.issues,
+      },
+    );
   }
 
-  await emitRunEvent(deps, prepared, "PROGRESS", "Preparing documentation proposal", {
+  await emitRunEvent(deps, prepared, "PROGRESS", `Preparing documentation proposal. ${grounding.summary}`, {
     progress: { step: 4, total: TOTAL_STEPS },
+    metadata: {
+      groundedSections: grounding.sections.filter((entry) => entry.grounded).length,
+      totalSections: grounding.sections.length,
+      unsupportedEvidencePaths: grounding.unsupportedPaths.length,
+    },
   });
-
-  const provider = first.provider;
-  const model = first.model;
   const proposal = await createProposal({
     deps,
     run,
@@ -149,9 +175,9 @@ export async function executeFullGeneration(
     summary:
       options.summaryPrefix ??
       `README generated from ${state.snapshot.files.length} inspected files across ${analysis.languages.length} detected language(s).`,
-    sections: first.data.sections.map((section) => section.key as SectionKey),
+    sections: draft.sections.map((section) => section.key as SectionKey),
     warnings,
-    explanations: first.data.sections
+    explanations: draft.sections
       .filter((section) => section.warnings.length > 0)
       .map((section) => ({
         summary: section.heading,

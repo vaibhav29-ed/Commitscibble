@@ -369,6 +369,24 @@ export class GitHubClient {
     );
   }
 
+  /** Installation ids the user has granted, used to verify install callbacks. */
+  async listUserInstallations(): Promise<number[]> {
+    const parsed = await this.request(
+      "/user/installations?per_page=100",
+      {},
+      (payload) =>
+        z
+          .object({
+            installations: z
+              .array(z.object({ id: z.number().int() }).passthrough())
+              .default([]),
+          })
+          .passthrough()
+          .parse(payload),
+    );
+    return parsed.installations.map((installation) => installation.id);
+  }
+
   async getRepository(owner: string, repo: string): Promise<GitHubRepository> {
     return this.request(
       `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,

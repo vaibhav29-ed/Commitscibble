@@ -15,7 +15,7 @@ import {
   type RepositoryDocument,
 } from "@commitscibble/persistence";
 import { mapSectionsToSources } from "@commitscibble/documentation-engine";
-import { emitRunEvent, type WorkerDeps } from "../lib/context.js";
+import { assertRunActive, emitRunEvent, type WorkerDeps } from "../lib/context.js";
 import { notifyReviewRequired } from "../lib/notifications.js";
 import type { RepositoryState } from "../lib/repository-state.js";
 
@@ -40,6 +40,7 @@ export async function createProposal(
   input: CreateProposalInput,
 ): Promise<DocumentationProposalDocument> {
   const { deps, run, repository, state, analysis, original, proposed } = input;
+  await assertRunActive(String(run._id));
   const diff = createUnifiedDiff(original, proposed, {
     path: repository.settings.readmePath,
   });

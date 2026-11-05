@@ -2,36 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design tokens mapped to the Taste Skill deal for CommitScibble:
+ * tasteskill 2.5, palette rose-grey-green, type Mona Sans + Geist Mono,
+ * radius "soft". Light is the primary surface; dark keeps the same ink/accent
+ * inversion.
+ */
 :root {
-  --bg: 250 250 249;
-  --fg: 24 24 27;
-  --card: 255 255 255;
-  --muted: 244 244 245;
-  --muted-fg: 113 113 122;
-  --border: 228 228 231;
-  --primary: 24 24 27;
-  --primary-fg: 250 250 250;
-  --accent: 37 99 235;
-  --danger: 220 38 38;
-  --success: 22 163 74;
-  --warning: 202 138 4;
-  --code-bg: 244 244 245;
+  --bg: 235 229 227;
+  --fg: 43 38 34;
+  --card: 225 218 215;
+  --muted: 237 230 220;
+  --muted-fg: 101 92 88;
+  --border: 43 38 34;
+  --primary: 15 125 69;
+  --primary-fg: 255 255 255;
+  --accent: 15 125 69;
+  --accent-fg: 255 255 255;
+  --danger: 186 57 43;
+  --success: 15 125 69;
+  --warning: 168 122 42;
+  --code-bg: 243 236 228;
 }
 
 .dark {
-  --bg: 9 9 11;
-  --fg: 244 244 245;
-  --card: 18 18 20;
-  --muted: 24 24 27;
-  --muted-fg: 161 161 170;
-  --border: 39 39 42;
-  --primary: 244 244 245;
-  --primary-fg: 9 9 11;
-  --accent: 96 165 250;
-  --danger: 248 113 113;
-  --success: 74 222 128;
-  --warning: 250 204 21;
-  --code-bg: 24 24 27;
+  --bg: 43 38 34;
+  --fg: 235 229 227;
+  --card: 54 49 45;
+  --muted: 66 59 55;
+  --muted-fg: 162 156 153;
+  --border: 235 229 227;
+  --primary: 235 229 227;
+  --primary-fg: 43 38 34;
+  --accent: 235 229 227;
+  --accent-fg: 43 38 34;
+  --danger: 217 90 79;
+  --success: 82 199 145;
+  --warning: 222 186 92;
+  --code-bg: 30 27 25;
 }
 
 @layer base {
@@ -41,15 +49,44 @@
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.005em;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  h1 {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+
+  strong,
+  b {
+    font-weight: 600;
   }
 
   ::selection {
-    background: rgb(var(--accent) / 0.25);
+    background: rgb(var(--accent) / 0.28);
   }
 
   :focus-visible {
@@ -60,11 +97,61 @@
 
 @layer components {
   .surface {
-    @apply rounded-lg border border-border bg-card shadow-subtle;
+    @apply rounded-xl border border-border bg-card shadow-subtle;
   }
 
   .surface-muted {
-    @apply rounded-lg border border-border bg-muted/50;
+    @apply rounded-xl border border-border bg-muted/60;
+  }
+
+  .font-display {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.03em;
+  }
+
+  /* Large marketing headline from the Taste Skill deal: headlines 400, 500 on a
+     tech page; hero 64px / line-height 1.02, display 500 with tight tracking. */
+  .type-display {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500;
+    font-size: clamp(2.75rem, 6vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  /* App page title: one step below the marketing display voice. */
+  .type-page-title {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: rgb(var(--fg));
+  }
+
+  /* Marketing body copy from the deal: text 400 / body 400, line height 1.625. */
+  .type-body {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.625;
+    letter-spacing: -0.0125em;
+  }
+
+  /* Section heading one step below the marketing display voice. */
+  .type-title-md {
+    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.5rem, 2.2vw, 2rem);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -0.032em;
+  }
+
+  .text-gradient-brand {
+    background-image: linear-gradient(100deg, #0f7d45 0%, #159a60 55%, #4cb87e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .prose-readme {
@@ -73,5 +160,374 @@
 
   .scrollbar-thin {
     scrollbar-width: thin;
+  }
+
+  .hairline {
+    @apply border-border/80;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .bg-dot-grid {
+    background-image: radial-gradient(rgb(var(--border)) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .glass {
+    background: rgb(var(--card) / 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Code and measured data share one numeric rhythm. */
+.font-mono,
+code,
+pre,
+kbd,
+samp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Motion                                                                     */
+/* -------------------------------------------------------------------------- */
+
+@keyframes motion-scan {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  16% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(260%);
+    opacity: 0;
+  }
+}
+
+@keyframes motion-diff-add {
+  0% {
+    background-color: transparent;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+  55% {
+    background-color: rgb(var(--success) / 0.18);
+    box-shadow: inset 2px 0 0 rgb(var(--success) / 0.95);
+  }
+  100% {
+    background-color: rgb(var(--success) / 0.1);
+    box-shadow: inset 2px 0 0 transparent;
+  }
+}
+
+@keyframes motion-diff-remove {
+  0% {
+    background-color: transparent;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+  55% {
+    background-color: rgb(var(--danger) / 0.18);
+    box-shadow: inset 2px 0 0 rgb(var(--danger) / 0.95);
+  }
+  100% {
+    background-color: rgb(var(--danger) / 0.1);
+    box-shadow: inset 2px 0 0 transparent;
+  }
+}
+
+@keyframes motion-section-flag {
+  0% {
+    background-color: transparent;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+  38% {
+    background-color: rgb(var(--accent) / 0.08);
+    box-shadow: inset 2px 0 0 rgb(var(--accent) / 0.85);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+}
+
+@keyframes motion-badge {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--warning) / 0);
+  }
+  40% {
+    box-shadow: 0 0 0 4px rgb(var(--warning) / 0.14);
+  }
+}
+
+@keyframes motion-verified {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--success) / 0.45);
+  }
+  60% {
+    box-shadow: 0 0 0 6px rgb(var(--success) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--success) / 0);
+  }
+}
+
+@keyframes motion-stamp {
+  0%,
+  100% {
+    border-top-color: rgb(var(--border));
+  }
+  45% {
+    border-top-color: rgb(var(--success) / 0.55);
+  }
+}
+
+@keyframes motion-event-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes motion-toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motion-toast-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+@keyframes motion-dialog-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motion-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-greeting-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* Taste Skill hero collage: the small result card shows its finished state,
+   holds, then its steps arrive 0.7s apart, holds again, and loops. */
+@keyframes motion-loop-card {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  12%,
+  78% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.motion-loop-card {
+  animation: motion-loop-card 3.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes motion-sun-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes motion-headline-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.motion-scan {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 0;
+  height: 46%;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgb(32 155 255 / 0.05) 55%,
+    rgb(32 155 255 / 0.16) 94%,
+    rgb(32 155 255 / 0.38) 100%
+  );
+}
+
+.motion-run .motion-scan {
+  animation: motion-scan 640ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+}
+
+.motion-run .motion-diff-line[data-tone="add"] {
+  animation: motion-diff-add 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-run .motion-diff-line[data-tone="remove"] {
+  animation: motion-diff-remove 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-run .motion-section-flag {
+  animation: motion-section-flag 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-run .motion-badge {
+  animation: motion-badge 420ms cubic-bezier(0.16, 1, 0.3, 1) 380ms both;
+}
+
+.motion-run .motion-verified {
+  animation: motion-verified 420ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both;
+}
+
+.motion-run .motion-stamp {
+  animation: motion-stamp 420ms cubic-bezier(0.16, 1, 0.3, 1) 500ms both;
+}
+
+.motion-event-in {
+  animation: motion-event-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-toast {
+  animation: motion-toast-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-toast[data-leaving="true"] {
+  pointer-events: none;
+  animation: motion-toast-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.motion-dialog-panel {
+  animation: motion-dialog-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.motion-dialog-backdrop {
+  animation: motion-fade-in 160ms ease-out both;
+}
+
+.motion-fade-in {
+  animation: motion-fade-in 150ms ease-out both;
+}
+
+/* The review panel is the only element that should morph across a state change. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(root) {
+  animation: none;
+}
+
+::view-transition-group(review-dialog),
+::view-transition-group(proposal-panel) {
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-old(review-dialog),
+::view-transition-new(review-dialog),
+::view-transition-old(proposal-panel),
+::view-transition-new(proposal-panel) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .motion-scan {
+    display: none;
+  }
+
+  ::view-transition-group(review-dialog),
+  ::view-transition-group(proposal-panel),
+  ::view-transition-old(review-dialog),
+  ::view-transition-new(review-dialog),
+  ::view-transition-old(proposal-panel),
+  ::view-transition-new(proposal-panel) {
+    animation: none !important;
   }
 }

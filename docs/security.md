@@ -21,6 +21,11 @@
 - Access tokens are encrypted with AES-256-GCM and a random IV per record; only the
   ciphertext, IV and auth tag are stored. `TOKEN_ENCRYPTION_KEY` is a base64 32-byte
   key supplied by the environment, never by the database or source control.
+- When the optional GitHub App is configured, repository reads and writes use
+  short-lived installation tokens minted from an RS256 App JWT. Tokens are cached
+  in memory until shortly before expiry and never stored in MongoDB or returned to
+  the browser. Installation ids are verified against the user's GitHub
+  installations before being stored.
 - Tokens are decrypted only inside the API/worker process for GitHub calls. They are
   never returned to the browser, written to audit records, included in errors, or
   logged.
@@ -102,11 +107,13 @@ Convex documents.
 
 - A compromised API or worker host can decrypt stored tokens; host hardening, secret
   rotation and least-privilege deployment remain operational requirements.
-- GitHub OAuth `repo` scope is broad. A GitHub App with installation-scoped tokens
-  is the recommended hardening step.
+- GitHub OAuth `repo` scope is broad and remains in use for sign-in, repository
+  listing and as the write fallback. Configure the optional GitHub App to give
+  repository writes installation-scoped tokens instead.
 - Prompt injection is mitigated, not eliminated. Output validation and
   human approval remain the last line of defence.
 - Convex read keys are bearer capabilities; rotate
   `COMMITSCIBBLE_PUBLISH_TOKEN` if one leaks.
-- Rate limiting is in-process. Multiple API replicas need Redis-backed limits for a
-  global guarantee.
+- Rate limiting uses a shared Redis counter when configured and falls back to an
+  in-process counter if Redis is unreachable, so a Redis outage temporarily weakens
+  the limit instead of failing requests.

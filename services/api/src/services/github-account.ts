@@ -1,7 +1,9 @@
 import {
   GitHubClient,
+  appInstallUrl,
   buildAuthorizeUrl,
   exchangeCodeForToken,
+  getInstallationToken,
   revokeGitHubOAuthToken,
 } from "@commitscibble/github";
 import { AppError, ERROR_CODES, type AvailableRepository } from "@commitscibble/shared";
@@ -20,6 +22,47 @@ export class GithubAccountService {
       redirectUri: this.env.GITHUB_CALLBACK_URL as string,
       state,
     });
+  }
+
+  appConfigured(): boolean {
+    return Boolean(
+      this.env.GITHUB_APP_ID && this.env.GITHUB_APP_SLUG && this.env.GITHUB_APP_PRIVATE_KEY,
+    );
+  }
+
+  installUrl(): string | null {
+    return this.appConfigured() ? appInstallUrl(this.env.GITHUB_APP_SLUG as string) : null;
+  }
+
+  /** Confirms the installation belongs to the signed-in user before storing it. */
+  async verifyInstallation(userId: string, installationId: number): Promise<boolean> {
+    const client = await this.clientForUser(userId);
+    const installations = await client.listUserInstallations();
+    return installations.includes(installationId);
+  }
+
+  async linkInstallation(userId: string, installationId: number): Promise<void> {
+    await User.updateOne({ _id: userId }, { $set: { githubInstallationId: installationId } });
+  }
+
+  async installationIdFor(userId: string): Promise<number | null> {
+    const user = await User.findById(userId).select("githubInstallationId");
+    return user?.githubInstallationId ?? null;
+  }
+
+  async clientForInstallation(installationId: number): Promise<GitHubClient> {
+    if (!this.appConfigured()) {
+      throw new AppError(ERROR_CODES.GITHUB_UNAUTHORIZED, "GitHub App access is not configured.", {
+        httpStatus: 503,
+      });
+    }
+    const token = await getInstallationToken({
+      appId: this.env.GITHUB_APP_ID as string,
+      privateKey: this.env.GITHUB_APP_PRIVATE_KEY as string,
+      installationId,
+      baseUrl: this.env.GITHUB_API_BASE_URL,
+    });
+    return new GitHubClient({ token, baseUrl: this.env.GITHUB_API_BASE_URL });
   }
 
   async completeAuthorization(code: string): Promise<{ user: UserDocument; sessionUser: SessionUser }> {
@@ -124,6 +167,7 @@ export class GithubAccountService {
         {
           $set: {
             githubTokenEncrypted: null,
+            githubInstallationId: null,
             tokenScopes: [],
             tokenUpdatedAt: null,
             status: "DISCONNECTED",

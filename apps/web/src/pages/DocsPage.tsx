@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, GitBranch, Lock, ServerCog } from "lucide-react";
+import { ArrowLeft, GitBranch, Lock, ServerCog } from "lucide-react";
 import { Logo } from "../components/shell";
-import { Badge } from "../components/ui";
 
 const SECTIONS = [
   {
@@ -36,36 +35,40 @@ const SECTIONS = [
 export default function DocsPage() {
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/75 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
           <Logo />
-          <Link to="/" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+          <Link
+            to="/"
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
             <ArrowLeft className="h-3.5 w-3.5" /> Home
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-12">
-        <Badge tone="outline">
-          <BookOpen className="h-3 w-3" /> Product documentation
-        </Badge>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight">How CommitScibble works</h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          CommitScibble keeps a README tied to the code it documents. This page covers the
-          operator-facing behaviour; deployment and API details live in the repository README and
-          docs directory.
-        </p>
+      <main className="mx-auto max-w-5xl px-6 pb-24 pt-16 lg:pt-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="type-display mt-5 text-balance">How CommitScibble works</h1>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+            CommitScibble keeps a README tied to the code it documents. This page covers the
+            operator-facing behaviour; deployment and API details live in the repository README and
+            docs directory.
+          </p>
+        </div>
 
-        <div className="mt-10 space-y-8">
+        <div className="mx-auto mt-12 grid max-w-2xl gap-4">
           {SECTIONS.map((section) => (
-            <section key={section.title} className="surface p-6">
-              <div className="flex items-center gap-2">
-                <section.icon className="h-4 w-4 text-accent" />
-                <h2 className="text-sm font-semibold">{section.title}</h2>
+            <section key={section.title} className="rounded-xl border border-border bg-card p-6 shadow-subtle sm:p-8">
+              <div className="flex items-center gap-3">
+                <span className="grid h-9 w-9 place-items-center rounded-xl border border-brand-200/70 bg-brand-50 text-primary dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300">
+                  <section.icon className="h-4 w-4" />
+                </span>
+                <h2 className="type-title-md">{section.title}</h2>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2.5">
                 {section.body.map((paragraph) => (
-                  <p key={paragraph} className="text-xs leading-relaxed text-muted-foreground">
+                  <p key={paragraph} className="text-base leading-relaxed text-muted-foreground">
                     {paragraph}
                   </p>
                 ))}
@@ -74,9 +77,9 @@ export default function DocsPage() {
           ))}
         </div>
 
-        <section className="mt-8 surface p-6">
-          <h2 className="text-sm font-semibold">What CommitScibble will not do</h2>
-          <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+        <section className="mx-auto mt-4 max-w-2xl rounded-xl border border-border bg-muted/50 p-6 sm:p-8">
+          <h2 className="type-title-md">What CommitScibble will not do</h2>
+          <ul className="mt-4 space-y-2 text-base leading-relaxed text-muted-foreground">
             <li>· It will not invent package commands, environment variables, endpoints, or licenses that are absent from the repository.</li>
             <li>· It will not overwrite a README that changed after a proposal was generated (the proposal is marked stale).</li>
             <li>· It will not execute commands or code produced by a language model.</li>
@@ -84,8 +87,11 @@ export default function DocsPage() {
           </ul>
         </section>
 
-        <div className="mt-8 text-xs text-muted-foreground">
-          <Link to="/signin" className="underline underline-offset-2 hover:text-foreground">
+        <div className="mx-auto mt-10 max-w-2xl text-center text-sm text-muted-foreground">
+          <Link
+            to="/signin"
+            className="font-medium text-primary underline underline-offset-4 hover:underline dark:text-brand-300"
+          >
             Sign in with GitHub
           </Link>{" "}
           to connect your first repository.

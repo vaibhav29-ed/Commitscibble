@@ -152,6 +152,24 @@ export class RepositoryService {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
+    // Prefer installation-scoped tokens for this repository when the user has
+    // installed the GitHub App and the installation can actually read it.
+    const installationId = await this.github.installationIdFor(userId).catch(() => null);
+    let repositoryInstallationId: number | null = null;
+    if (installationId) {
+      try {
+        const installationClient = await this.github.clientForInstallation(installationId);
+        await installationClient.getRepository(doc.owner, doc.name);
+        repositoryInstallationId = installationId;
+      } catch {
+        repositoryInstallationId = null;
+      }
+    }
+    if (doc.githubInstallationId !== repositoryInstallationId) {
+      doc.githubInstallationId = repositoryInstallationId;
+      await doc.save();
+    }
+
     await recordActivity({
       userId,
       repositoryId: doc._id,

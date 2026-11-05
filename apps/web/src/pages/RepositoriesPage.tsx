@@ -48,8 +48,8 @@ export default function RepositoriesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Repositories</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <h1 className="type-page-title">Repositories</h1>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             Connect repositories, run documentation jobs, and control per-repository automation.
           </p>
         </div>
@@ -66,12 +66,12 @@ export default function RepositoriesPage() {
       </div>
 
       {repositories.data?.githubError ? (
-        <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 text-xs">
+        <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div>
             <p className="font-medium">Your GitHub repository list is unavailable</p>
-            <p className="mt-1 text-2xs text-muted-foreground">{repositories.data.githubError}</p>
-            <Link to="/dashboard/settings" className="mt-2 inline-block text-2xs text-accent hover:underline">
+            <p className="mt-1 leading-relaxed text-muted-foreground">{repositories.data.githubError}</p>
+            <Link to="/dashboard/settings" className="mt-2 inline-block text-xs text-accent hover:underline">
               Reconnect GitHub
             </Link>
           </div>
@@ -80,7 +80,7 @@ export default function RepositoriesPage() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Connected</h2>
+          <h2 className="text-base font-semibold">Connected</h2>
           <Badge tone="outline">{connected.length}</Badge>
         </div>
 
@@ -108,11 +108,11 @@ export default function RepositoriesPage() {
                     <div className="min-w-0">
                       <Link
                         to={`/dashboard/repositories/${repo.id}`}
-                        className="truncate text-sm font-semibold hover:underline"
+                        className="truncate text-base font-semibold hover:underline"
                       >
                         {repo.fullName}
                       </Link>
-                      <p className="mt-1 flex flex-wrap items-center gap-2 text-2xs text-muted-foreground">
+                      <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <span className="font-mono">{repo.defaultBranch}</span>
                         <span>·</span>
                         <span className="inline-flex items-center gap-1">
@@ -125,7 +125,7 @@ export default function RepositoriesPage() {
                     <StatusPill value={repo.documentationStatus} />
                   </div>
 
-                  <dl className="grid grid-cols-2 gap-2 text-2xs">
+                  <dl className="grid grid-cols-2 gap-2 text-xs">
                     <div className="rounded-md border border-border bg-muted/30 p-2">
                       <dt className="text-muted-foreground">Last processed commit</dt>
                       <dd className="mt-0.5 font-mono">{shortSha(repo.lastProcessedCommitSha)}</dd>
@@ -151,7 +151,7 @@ export default function RepositoriesPage() {
                   </dl>
 
                   {repo.lastRun ? (
-                    <p className="text-2xs text-muted-foreground">
+                    <p className="text-xs leading-relaxed text-muted-foreground">
                       Last run: {repo.lastRun.operation.toLowerCase().replaceAll("_", " ")} ·{" "}
                       {repo.lastRun.status.toLowerCase()}
                       {repo.lastRun.errorMessage ? ` — ${repo.lastRun.errorMessage}` : ""}
@@ -172,8 +172,8 @@ export default function RepositoriesPage() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-semibold">Available on GitHub</h2>
-            <p className="text-2xs text-muted-foreground">
+            <h2 className="text-base font-semibold">Available on GitHub</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Repositories returned by your current authorization, verified against GitHub.
             </p>
           </div>
@@ -236,8 +236,8 @@ function AvailableRow({
       data-testid="available-repository"
     >
       <div className="min-w-0">
-        <p className="truncate text-xs font-medium">{repo.fullName}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-2xs text-muted-foreground">
+        <p className="truncate text-sm font-medium">{repo.fullName}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
           {repo.private ? <Lock className="h-3 w-3" /> : null}
           {repo.private ? "Private" : "Public"} · default branch{" "}
           <span className="font-mono">{repo.defaultBranch}</span>

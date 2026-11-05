@@ -35,12 +35,16 @@ GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
 GITHUB_CALLBACK_URL=https://<api-host>/auth/github/callback
 GITHUB_WEBHOOK_SECRET=<random>
+# Optional GitHub App (installation-scoped writes)
+GITHUB_APP_ID=...
+GITHUB_APP_SLUG=...
+GITHUB_APP_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 CONVEX_URL=https://<deployment>.convex.cloud
 COMMITSCIBBLE_PUBLISH_TOKEN=<random 32+>
 GEMINI_API_KEY=...
 GEMINI_MODEL=gemini-2.5-flash
 GROQ_API_KEY=...
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
 README_FILE_NAME=README.md
 DOC_UPDATE_MODE=REVIEW
 ```
@@ -108,7 +112,18 @@ Repository or organization webhook:
 Verify with a test delivery: expect `202`. A `401` means the secret or raw body
 handling is wrong.
 
-## 6. Post-deploy checks
+## 6. GitHub App (optional)
+
+Create an app at <https://github.com/settings/apps> with repository permissions
+`Contents: read and write`, `Metadata: read`, and the setup URL
+`https://<api-host>/auth/github/app/callback`. Install it on the repositories you
+track. Set `GITHUB_APP_ID`, `GITHUB_APP_SLUG` and `GITHUB_APP_PRIVATE_KEY`; store
+the PEM with escaped newlines (`\n`) if the platform collapses multiline values.
+The API verifies an installation belongs to the signed-in user before storing it,
+and repository reads/writes prefer installation tokens. Without these values the
+OAuth token is used and the dashboard reports the app as not configured.
+
+## 7. Post-deploy checks
 
 ```bash
 curl -fsS https://<api-host>/health
@@ -134,9 +149,10 @@ the diff and approve. Check `/dashboard/activity` for the correlated event strea
   `TOKEN_ENCRYPTION_KEY` requires users to reauthorize GitHub. Rotate
   `COMMITSCIBBLE_PUBLISH_TOKEN` in API and worker together; clients refetch
   `/auth/me`.
-- **Scaling** — API is stateless; add replicas behind the platform. Move rate
-  limiting to Redis before running more than one API instance. Worker replicas are
-  safe because job ids and state transitions are atomic.
+- **Scaling** — API is stateless; add replicas behind the platform. Rate limits
+  use a shared Redis counter whenever `REDIS_URL` is set, so replicas enforce one
+  budget; without Redis reachable they fall back to per-process counters. Worker
+  replicas are safe because job ids and state transitions are atomic.
 
 ## 8. Troubleshooting
 

@@ -25,6 +25,9 @@ const OPERATION_LABELS: Record<OperationType, string> = {
   PROPOSAL_APPLY: "Applying documentation proposal",
 };
 
+const QUEUE_UNAVAILABLE_MESSAGE =
+  "The job queue is unavailable, so this run could not be scheduled. Check REDIS_URL and that Redis is reachable, then retry.";
+
 export function toRunSummary(doc: DocumentationRunDocument): RunSummary {
   return {
     id: String(doc._id),
@@ -91,6 +94,52 @@ export function proposalDetail(doc: DocumentationProposalDocument): ProposalSumm
 export class RunService {
   constructor(private readonly queue: JobQueue) {}
 
+  /**
+   * Schedules a queued run and stores its BullMQ job id. If the queue cannot be
+   * reached the run is marked FAILED with an actionable error code instead of
+   * being left in QUEUED forever, and the caller gets a 503 rather than a hang
+   * or an opaque 500.
+   */
+  private async scheduleRun(
+    run: DocumentationRunDocument,
+    repositoryFullName: string | null,
+    schedule: () => Promise<string>,
+  ): Promise<void> {
+    try {
+      const jobId = await schedule();
+      await DocumentationRun.updateOne({ _id: run._id }, { $set: { jobId } });
+    } catch (error) {
+      await DocumentationRun.updateOne(
+        { _id: run._id, status: "QUEUED" },
+        {
+          $set: {
+            status: "FAILED",
+            completedAt: new Date(),
+            errorCode: ERROR_CODES.NOT_READY,
+            errorMessage: QUEUE_UNAVAILABLE_MESSAGE,
+          },
+        },
+      ).catch(() => undefined);
+
+      await recordActivity({
+        userId: String(run.userId),
+        repositoryId: run.repositoryId,
+        repositoryFullName,
+        runId: run._id,
+        type: "FAILED",
+        message: "Run could not be queued because the job queue is unavailable",
+        logId: run.correlationId,
+        metadata: { operation: run.operation, reason: ERROR_CODES.NOT_READY },
+      }).catch(() => undefined);
+
+      throw new AppError(ERROR_CODES.NOT_READY, QUEUE_UNAVAILABLE_MESSAGE, {
+        httpStatus: 503,
+        retryable: true,
+        cause: error,
+      });
+    }
+  }
+
   async start(
     userId: string,
     repositoryId: string,
@@ -142,15 +191,16 @@ export class RunService {
       metadata: { operation },
     });
 
-    const jobId = await this.queue.enqueueRun({
-      runId: String(run._id),
-      repositoryId: String(repository._id),
-      userId,
-      operation,
-      correlationId,
-      attempt: 1,
-    });
-    await DocumentationRun.updateOne({ _id: run._id }, { $set: { jobId } });
+    await this.scheduleRun(run, repository.fullName, () =>
+      this.queue.enqueueRun({
+        runId: String(run._id),
+        repositoryId: String(repository._id),
+        userId,
+        operation,
+        correlationId,
+        attempt: 1,
+      }),
+    );
 
     return toRunSummary(run);
   }
@@ -270,16 +320,27 @@ export class RunService {
       metadata: { proposalId: String(claimed._id) },
     });
 
-    const jobId = await this.queue.enqueueApply({
-      runId: String(run._id),
-      repositoryId: String(repository._id),
-      userId,
-      operation: "PROPOSAL_APPLY",
-      correlationId,
-      attempt: 1,
-      proposalId: String(claimed._id),
-    });
-    await DocumentationRun.updateOne({ _id: run._id }, { $set: { jobId } });
+    try {
+      await this.scheduleRun(run, repository.fullName, () =>
+        this.queue.enqueueApply({
+          runId: String(run._id),
+          repositoryId: String(repository._id),
+          userId,
+          operation: "PROPOSAL_APPLY",
+          correlationId,
+          attempt: 1,
+          proposalId: String(claimed._id),
+        }),
+      );
+    } catch (error) {
+      // The proposal was claimed above; put it back so the user can approve it
+      // again once the queue is reachable.
+      await DocumentationProposal.updateOne(
+        { _id: claimed._id, status: "APPROVED" },
+        { $set: { status: "PENDING", reviewedAt: null, reviewedBy: null } },
+      ).catch(() => undefined);
+      throw error;
+    }
 
     return toRunSummary(run);
   }
@@ -313,6 +374,52 @@ export class RunService {
       { $set: { documentationStatus: "STALE" } },
     );
     return toProposalSummary(proposal);
+  }
+
+  async cancel(userId: string, runId: string): Promise<RunSummary> {
+    const run = await DocumentationRun.findOne({ _id: runId, userId });
+    if (!run) throw new AppError(ERROR_CODES.NOT_FOUND, "Run not found", { httpStatus: 404 });
+    if (!["QUEUED", "RUNNING", "RETRYING"].includes(run.status)) {
+      throw new AppError(
+        ERROR_CODES.CONFLICT,
+        `Run is ${run.status.toLowerCase()} and can no longer be cancelled.`,
+        { httpStatus: 409 },
+      );
+    }
+
+    const cancelled = await DocumentationRun.findOneAndUpdate(
+      { _id: run._id, status: { $in: ["QUEUED", "RUNNING", "RETRYING"] } },
+      {
+        $set: {
+          status: "CANCELLED",
+          completedAt: new Date(),
+          errorCode: "CANCELLED_BY_USER",
+          errorMessage: "Cancelled by the user before completion.",
+        },
+      },
+      { new: true },
+    );
+    if (!cancelled) {
+      throw new AppError(ERROR_CODES.CONFLICT, "Run changed state before it could be cancelled.", {
+        httpStatus: 409,
+      });
+    }
+
+    // Best effort: an active job is stopped by the worker's cancellation checks.
+    await this.queue.cancelRun(run.jobId).catch(() => undefined);
+
+    const repository = await Repository.findById(run.repositoryId);
+    await recordActivity({
+      userId,
+      repositoryId: run.repositoryId,
+      repositoryFullName: repository?.fullName ?? null,
+      runId: run._id,
+      jobId: run.jobId,
+      type: "CANCELLED",
+      message: "Documentation run cancelled by the user",
+      metadata: { operation: run.operation },
+    });
+    return toRunSummary(cancelled);
   }
 
   async retry(userId: string, runId: string): Promise<RunSummary> {
@@ -381,15 +488,16 @@ export class RunService {
       logId: correlationId,
       metadata: { retriedFrom: String(run._id) },
     });
-    const jobId = await this.queue.enqueueRun({
-      runId: String(newRun._id),
-      repositoryId: String(repository._id),
-      userId,
-      operation: run.operation,
-      correlationId,
-      attempt: run.attempt + 1,
-    });
-    await DocumentationRun.updateOne({ _id: newRun._id }, { $set: { jobId } });
+    await this.scheduleRun(newRun, repository.fullName, () =>
+      this.queue.enqueueRun({
+        runId: String(newRun._id),
+        repositoryId: String(repository._id),
+        userId,
+        operation: run.operation,
+        correlationId,
+        attempt: run.attempt + 1,
+      }),
+    );
     return toRunSummary(newRun);
   }
 }

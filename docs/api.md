@@ -21,6 +21,7 @@ generated from `packages/shared/src/openapi.ts`.
 | --- | --- | --- |
 | GET | `/auth/github` | Sets an OAuth state cookie and redirects to GitHub |
 | GET | `/auth/github/callback` | Validates state and code, creates a session, redirects to the app |
+| GET | `/auth/github/app/callback` | Confirms an installation belongs to the signed-in user, stores it, redirects to repositories |
 | GET | `/api/v1/auth/me` | `{ user, csrfToken, realtimeKey, github }` |
 | GET | `/api/v1/auth/session` | Session metadata for the current cookie |
 | POST | `/api/v1/auth/logout` | Revokes the current session (204) |
@@ -51,6 +52,7 @@ other repository routes use the CommitScibble document id.
 | GET | `/api/v1/runs/:runId` | Run detail plus correlated audit events |
 | GET | `/api/v1/runs/:runId/proposal` | Proposal, base hash/commit, diff and validation findings |
 | POST | `/api/v1/runs/:runId/retry` | Re-enqueues a failed run when the operation is safe (202) |
+| POST | `/api/v1/runs/:runId/cancel` | Cancels a queued, retrying or running run (200); the worker stops at its next checkpoint |
 | POST | `/api/v1/proposals/:proposalId/approve` | Creates an apply run (202); 409 if already decided or stale |
 | POST | `/api/v1/proposals/:proposalId/reject` | Records the decision and closes the review |
 

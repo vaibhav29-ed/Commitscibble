@@ -21,16 +21,16 @@ import { Button, Skeleton } from "./ui";
 
 export function Logo({ withWordmark = true }: { withWordmark?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-2" aria-label="CommitScibble home">
+    <Link to="/" className="group flex items-center gap-2.5" aria-label="CommitScibble home">
       <img
         src="/brand/logo.png"
         alt=""
         width={32}
         height={32}
-        className="h-8 w-8 rounded-lg object-cover ring-1 ring-black/5 dark:ring-white/10"
+        className="h-8 w-8 rounded-[10px] object-cover shadow-subtle ring-1 ring-black/5 transition-transform duration-150 ease-smooth group-hover:-translate-y-0.5 dark:ring-white/10"
       />
       {withWordmark ? (
-        <span className="text-sm font-semibold tracking-tight">
+        <span className="font-display text-[15px] font-medium tracking-tight">
           Commit<span className="text-muted-foreground">Scibble</span>
         </span>
       ) : null}
@@ -93,15 +93,15 @@ export function AppShell() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-card transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-card/95 backdrop-blur transition-transform duration-150 ease-smooth lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-14 items-center justify-between border-b border-border px-4">
+        <div className="flex h-16 items-center justify-between border-b border-border px-5">
           <Logo />
           <button
             type="button"
-            className="rounded p-1 text-muted-foreground hover:text-foreground lg:hidden"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
             onClick={() => setMobileOpen(false)}
             aria-label="Close navigation"
           >
@@ -117,10 +117,10 @@ export function AppShell() {
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
+                  "group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors duration-150",
                   isActive
-                    ? "bg-muted font-medium text-foreground"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    ? "bg-brand-50 font-medium text-primary dark:bg-brand-500/10 dark:text-brand-300"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                 )
               }
             >
@@ -131,7 +131,7 @@ export function AppShell() {
         </nav>
 
         <div className="border-t border-border p-3">
-          <div className="flex items-center gap-2 rounded-md p-2">
+          <div className="flex items-center gap-2 rounded-lg p-2">
             {user?.avatarUrl ? (
               <img
                 src={user.avatarUrl}
@@ -140,13 +140,13 @@ export function AppShell() {
                 loading="lazy"
               />
             ) : (
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-50 text-xs text-primary dark:bg-brand-500/10 dark:text-brand-300">
                 {user?.githubLogin?.slice(0, 2).toUpperCase() ?? "CS"}
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium">{user?.displayName ?? user?.githubLogin}</p>
-              <p className="truncate text-2xs text-muted-foreground">@{user?.githubLogin}</p>
+              <p className="truncate text-sm font-medium">{user?.displayName ?? user?.githubLogin}</p>
+              <p className="truncate text-xs text-muted-foreground">@{user?.githubLogin}</p>
             </div>
           </div>
           <Button
@@ -166,18 +166,18 @@ export function AppShell() {
 
       {mobileOpen ? (
         <div
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          className="motion-fade-in fixed inset-0 z-30 bg-black/40 lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-hidden
         />
       ) : null}
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/90 px-4 backdrop-blur">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation"
             >
@@ -190,7 +190,7 @@ export function AppShell() {
               href="https://github.com"
               target="_blank"
               rel="noreferrer noopener"
-              className="hidden items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground sm:flex"
+              className="hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
             >
               <Github className="h-3.5 w-3.5" /> GitHub
             </a>
@@ -205,7 +205,7 @@ export function AppShell() {
           </div>
         </header>
 
-        <main id="main" className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
           <Outlet />
         </main>
       </div>

@@ -52,8 +52,8 @@ export default function ActivityPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Activity</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <h1 className="type-page-title">Activity</h1>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             Authoritative audit events persisted in MongoDB, correlated by log and job id.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function ActivityPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-3">
-          <label className="space-y-1 text-2xs">
+          <label className="space-y-1 text-xs">
             <span className="font-medium text-muted-foreground">Repository</span>
             <Select value={repositoryId} onChange={(event) => updateParam("repositoryId", event.target.value)}>
               <option value="">All repositories</option>
@@ -90,7 +90,7 @@ export default function ActivityPage() {
               ))}
             </Select>
           </label>
-          <label className="space-y-1 text-2xs">
+          <label className="space-y-1 text-xs">
             <span className="font-medium text-muted-foreground">Status</span>
             <Select value={status} onChange={(event) => updateParam("status", event.target.value)}>
               {STATUSES.map((value) => (
@@ -100,7 +100,7 @@ export default function ActivityPage() {
               ))}
             </Select>
           </label>
-          <label className="space-y-1 text-2xs">
+          <label className="space-y-1 text-xs">
             <span className="font-medium text-muted-foreground">Operation</span>
             <Select value={operation} onChange={(event) => updateParam("operation", event.target.value)}>
               <option value="">All operations</option>
@@ -118,7 +118,7 @@ export default function ActivityPage() {
         <CardHeader className="flex-row items-center justify-between">
           <div>
             <CardTitle>Events</CardTitle>
-            <p className="text-2xs text-muted-foreground">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {activity.isPending ? "Loading activity…" : `${total} matching event${total === 1 ? "" : "s"}`}
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function ActivityPage() {
               <Skeleton className="h-12 w-full" />
             </div>
           ) : activity.isError ? (
-            <p className="text-xs text-danger">
+            <p className="text-sm leading-relaxed text-danger">
               Activity could not be loaded. {activity.error instanceof Error ? activity.error.message : ""}
             </p>
           ) : (

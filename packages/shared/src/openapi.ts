@@ -325,6 +325,13 @@ export const openApiDocument = {
         responses: { "202": { description: "New run queued" }, "409": errorResponse },
       },
     },
+    "/api/v1/runs/{runId}/cancel": {
+      post: {
+        summary: "Cancel a queued or running documentation run",
+        parameters: [runIdParam],
+        responses: { "200": { description: "Run cancelled" }, "409": errorResponse },
+      },
+    },
     "/api/v1/proposals/{proposalId}/approve": {
       post: {
         summary: "Approve a pending proposal and apply it to the target branch",

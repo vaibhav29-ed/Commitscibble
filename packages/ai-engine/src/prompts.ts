@@ -52,6 +52,7 @@ Rules for content:
 - ${analysis.commands.install ? `The install command is detected as: ${analysis.commands.install}` : "No install command was detected; state that the installation method is not documented in the repository."}
 - Environment variable names may only come from the detected list.
 - API reference may only describe endpoints present in the detected routes.
+- Every section's "evidence" array must list only repository paths that appear in the detected facts or the source files below; never cite a path you were not shown, and never cite a path you inferred.
 - Keep the summary to 1-3 sentences. Use concise technical prose.
 - Do not emit a level-1 heading in section bodies.${allowed ? `\n- Only write these sections: ${allowed.join(", ")}.` : ""}
 

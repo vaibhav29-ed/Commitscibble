@@ -6,9 +6,11 @@ import {
   validateReadme,
 } from "@commitscibble/documentation-engine";
 import {
+  assertRunActive,
   emitRunEvent,
   failRun,
   prepareRun,
+  RunCancelledError,
   succeedRun,
   type WorkerDeps,
 } from "../lib/context.js";
@@ -45,6 +47,7 @@ export async function runCleanup(
       progress: { step: 2, total: TOTAL_STEPS },
     });
 
+    await assertRunActive(String(run._id));
     const cleanup = await deps.ai.cleanupDocumentation({
       analysis: state.analysis,
       files: selectEvidenceFiles(state.snapshot, state.analysis, 12),
@@ -161,6 +164,7 @@ export async function runCleanup(
       metadata: { proposalId: String(proposal._id) },
     });
   } catch (error) {
+    if (error instanceof RunCancelledError) return;
     await failRun(deps, prepared.run, error);
     throw error;
   }

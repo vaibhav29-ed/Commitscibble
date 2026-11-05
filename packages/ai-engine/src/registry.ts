@@ -69,7 +69,7 @@ export class AiOrchestrator {
 
   async generateStructured<T>(
     request: AiJsonRequest,
-    schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+    schema: z.ZodType<T>,
   ): Promise<StructuredAiResult<T>> {
     if (this.options.providers.length === 0) {
       throw new AppError(
@@ -206,7 +206,7 @@ function normalizeError(error: unknown, provider: AiProvider["name"]): AiProvide
 /** Strip common JSON fencing before parsing, then enforce the output schema. */
 export function parseAndValidate<T>(
   text: string,
-  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+  schema: z.ZodType<T>,
   provider: string,
 ): T {
   const cleaned = stripJsonFences(text);

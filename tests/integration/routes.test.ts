@@ -2,7 +2,7 @@ import request from "supertest";
 import type { Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadEnv } from "@commitscibble/config";
-import type { SessionUser } from "@commitscibble/shared";
+import { AppError, ERROR_CODES, type SessionUser } from "@commitscibble/shared";
 import { createApp } from "../../services/api/src/app.js";
 import { createLogger } from "../../services/api/src/lib/logger.js";
 import type { SessionService } from "../../services/api/src/lib/session.js";
@@ -61,6 +61,7 @@ function createFakeServices() {
       approve: vi.fn(async () => ({ ...run, status: "QUEUED" })),
       reject: vi.fn(async () => ({ proposal: { id: PROPOSAL_ID }, run })),
       retry: vi.fn(async () => ({ ...run, status: "QUEUED" })),
+      cancel: vi.fn(async () => ({ ...run, status: "CANCELLED" })),
     },
     activity: {
       list: vi.fn(async () => ({ items: [], total: 0 })),
@@ -173,6 +174,39 @@ describe("HTTP surface", () => {
     expect(services.runs.start).toHaveBeenCalledWith(user.id, REPOSITORY_ID, "GENERATE");
   });
 
+  it("keeps the message of an authored 503 instead of masking it as a generic 500", async () => {
+    vi.mocked(services.runs.start).mockRejectedValueOnce(
+      new AppError(ERROR_CODES.NOT_READY, "The job queue is unavailable, so this run could not be scheduled.", {
+        httpStatus: 503,
+        retryable: true,
+      }),
+    );
+
+    const response = await withCsrf(
+      request(app).post(`/api/v1/repositories/${REPOSITORY_ID}/generate`),
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.body.error.code).toBe("NOT_READY");
+    expect(response.body.error.message).toContain("job queue is unavailable");
+    expect(response.body.requestId).toBeTruthy();
+  });
+
+  it("hides the details of an unexpected error behind the generic message", async () => {
+    vi.mocked(services.runs.start).mockRejectedValueOnce(
+      new Error("connect ECONNREFUSED 127.0.0.1:6379"),
+    );
+
+    const response = await withCsrf(
+      request(app).post(`/api/v1/repositories/${REPOSITORY_ID}/generate`),
+    );
+
+    expect(response.status).toBe(500);
+    expect(response.body.error.code).toBe("INTERNAL_ERROR");
+    expect(response.body.error.message).toContain("An unexpected error occurred");
+    expect(response.body.error.message).not.toContain("6379");
+  });
+
   it("updates repository tracking", async () => {
     const response = await withCsrf(
       request(app)
@@ -196,6 +230,19 @@ describe("HTTP surface", () => {
     expect(response.status).toBe(422);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
     expect(services.runs.get).not.toHaveBeenCalled();
+  });
+
+  it("cancels a run and returns its terminal state", async () => {
+    const response = await withCsrf(request(app).post(`/api/v1/runs/${RUN_ID}/cancel`));
+    expect(response.status).toBe(200);
+    expect(response.body.data.run.status).toBe("CANCELLED");
+    expect(services.runs.cancel).toHaveBeenCalledWith(user.id, RUN_ID);
+  });
+
+  it("requires CSRF and authentication to cancel a run", async () => {
+    const response = await authed(request(app).post(`/api/v1/runs/${RUN_ID}/cancel`));
+    expect(response.status).toBe(403);
+    expect(services.runs.cancel).not.toHaveBeenCalled();
   });
 
   it("approves a proposal and responds 202", async () => {

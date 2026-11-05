@@ -52,8 +52,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <h1 className="type-page-title">Settings</h1>
+        <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
           Account, integration, and deployment configuration that affects documentation behaviour.
         </p>
       </div>
@@ -84,12 +84,12 @@ export default function SettingsPage() {
                   )}
                   <div>
                     <p className="text-sm font-medium">{user.displayName ?? user.githubLogin}</p>
-                    <p className="text-2xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       @{user.githubLogin} · GitHub id {user.githubId}
                     </p>
                   </div>
                 </div>
-                <div className="grid gap-2 text-2xs sm:grid-cols-2">
+                <div className="grid gap-2 text-xs sm:grid-cols-2">
                   <Info label="Email" value={user.email ?? "Not provided by GitHub"} />
                   <Info label="Account created" value={formatDate(user.createdAt)} />
                   <Info label="Session" value="HttpOnly cookie · 7 day expiry" />
@@ -109,7 +109,7 @@ export default function SettingsPage() {
                 </div>
               </>
             ) : (
-              <p className="text-xs text-danger">Your session is no longer valid.</p>
+              <p className="text-sm text-danger">Your session is no longer valid.</p>
             )}
           </CardContent>
         </Card>
@@ -125,14 +125,14 @@ export default function SettingsPage() {
               <Skeleton className="h-24 w-full" />
             ) : meta.data ? (
               <>
-                <div className="grid gap-2 text-2xs sm:grid-cols-2">
+                <div className="grid gap-2 text-xs sm:grid-cols-2">
                   <Info label="Default README file" value={meta.data.readmeFileName} />
                   <Info label="Default update mode" value={meta.data.defaultUpdateMode} />
                   <Info label="Audit retention" value={`${meta.data.retention.auditDays} days`} />
                   <Info label="Webhook retention" value={`${meta.data.retention.webhookDays} days`} />
                 </div>
                 <div>
-                  <p className="text-2xs text-muted-foreground">AI providers configured</p>
+                  <p className="text-xs text-muted-foreground">AI providers configured</p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {meta.data.aiProviders.length > 0 ? (
                       meta.data.aiProviders.map((provider) => (
@@ -144,12 +144,29 @@ export default function SettingsPage() {
                       <Badge tone="danger">None — documentation runs will fail</Badge>
                     )}
                   </div>
-                  <p className="mt-2 text-2xs text-muted-foreground">
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     Provider and model identifiers are deployment environment settings
                     (GEMINI_MODEL, GROQ_MODEL). They are not editable per user in this build.
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3 text-2xs">
+                <div className="border-t border-border pt-3">
+                  <p className="text-xs text-muted-foreground">GitHub App</p>
+                  {meta.data.githubApp.configured && meta.data.githubApp.installUrl ? (
+                    <a
+                      href={meta.data.githubApp.installUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="mt-1 inline-block text-xs font-medium text-accent hover:underline"
+                    >
+                      Install or manage the GitHub App
+                    </a>
+                  ) : (
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      Not configured — repository writes use the OAuth token.
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3 text-xs">
                   <Badge tone={meta.data.realtime.convex ? "success" : "outline"}>
                     {meta.data.realtime.convex ? "Convex realtime configured" : "Polling activity (Convex not configured)"}
                   </Badge>
@@ -159,7 +176,7 @@ export default function SettingsPage() {
                 </div>
               </>
             ) : (
-              <p className="text-2xs text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Deployment metadata is unavailable. The API may be misconfigured.
               </p>
             )}
@@ -171,12 +188,12 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Per-repository documentation settings</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-xs text-muted-foreground">
+        <CardContent className="max-w-xl space-y-2 text-sm leading-relaxed text-muted-foreground">
           <p>
             README path, target branch, update mode, automation, ignore rules, maintained sections,
             and the commit message template are configured per repository.
           </p>
-          <Link to="/dashboard/repositories" className="inline-block text-2xs font-medium text-accent hover:underline">
+          <Link to="/dashboard/repositories" className="inline-block text-xs font-medium text-accent hover:underline">
             Open repositories
           </Link>
         </CardContent>
@@ -188,7 +205,7 @@ export default function SettingsPage() {
             <AlertTriangle className="h-3.5 w-3.5 text-warning" /> Data deletion
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-xs text-muted-foreground">
+        <CardContent className="max-w-xl space-y-2 text-sm leading-relaxed text-muted-foreground">
           <p>
             Revoking the GitHub authorization removes the encrypted access token, ends every
             session, disconnects all repositories, and stops webhook processing immediately.

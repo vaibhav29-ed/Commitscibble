@@ -9,9 +9,11 @@ import {
   validateReadme,
 } from "@commitscibble/documentation-engine";
 import {
+  assertRunActive,
   emitRunEvent,
   failRun,
   prepareRun,
+  RunCancelledError,
   succeedRun,
   type PreparedRun,
   type WorkerDeps,
@@ -32,6 +34,7 @@ export async function runIncremental(
   try {
     await executeIncremental(deps, prepared);
   } catch (error) {
+    if (error instanceof RunCancelledError) return;
     await failRun(deps, prepared.run, error);
     throw error;
   }
@@ -213,6 +216,7 @@ export async function executeIncremental(
     progress: { step: 4, total: TOTAL_STEPS },
   });
 
+  await assertRunActive(String(run._id));
   const patchResult = await deps.ai.generateIncrementalPatch({
     analysis,
     files: selectEvidenceFiles(state.snapshot, analysis, 18),
@@ -294,6 +298,18 @@ export async function executeIncremental(
       .map((issue) => issue.message),
   );
 
+  const lowConfidence = applied.applied.filter((patch) => patch.confidence === "low");
+  const reviewGate = impact.requiresReview
+    ? "the impact classification flagged this change for review"
+    : lowConfidence.length > 0
+      ? `the model reported low confidence for ${lowConfidence.map((patch) => patch.key).join(", ")}`
+      : null;
+  if (reviewGate) {
+    warnings.push(
+      `Automatic apply was withheld because ${reviewGate}. The proposal is queued for review.`,
+    );
+  }
+
   await emitRunEvent(deps, prepared, "PROGRESS", "Validating README changes", {
     progress: { step: 5, total: TOTAL_STEPS },
   });
@@ -325,7 +341,9 @@ export async function executeIncremental(
   });
 
   const shouldApply =
-    repository.settings.updateMode === "AUTOMATIC" && repository.settings.automationEnabled;
+    repository.settings.updateMode === "AUTOMATIC" &&
+    repository.settings.automationEnabled &&
+    reviewGate === null;
 
   if (shouldApply) {
     await emitRunEvent(deps, prepared, "PROGRESS", "Applying changes to GitHub", {
@@ -355,12 +373,19 @@ export async function executeIncremental(
     return;
   }
 
-  await succeedRun(deps, prepared, "Targeted documentation update ready for review", {
-    metadata: {
-      proposalId: String(proposal._id),
-      affectedSections: impact.sections.map((section) => section.key).join(","),
+  await succeedRun(
+    deps,
+    prepared,
+    reviewGate
+      ? `Targeted documentation update ready for review (automatic apply withheld: ${reviewGate})`
+      : "Targeted documentation update ready for review",
+    {
+      metadata: {
+        proposalId: String(proposal._id),
+        affectedSections: impact.sections.map((section) => section.key).join(","),
+      },
     },
-  });
+  );
 }
 
 function matchSimple(path: string, pattern: string): boolean {

@@ -130,6 +130,24 @@ export function useRepositoryActions(repositoryId: string) {
   return { start };
 }
 
+export function useCancelRun() {
+  const toast = useToast();
+  const invalidate = useInvalidator();
+  return useMutation({
+    mutationFn: (runId: string) => api.cancelRun(runId),
+    onSuccess: () => {
+      toast.push({
+        title: "Run cancelled",
+        description: "The worker stops before its next GitHub write.",
+        variant: "success",
+      });
+      invalidate("run", "repository", "repositories", "activity");
+    },
+    onError: (error) =>
+      toast.push({ title: "Could not cancel run", description: errorMessage(error), variant: "error" }),
+  });
+}
+
 export function useRepositorySettings(repositoryId: string) {
   const toast = useToast();
   const invalidate = useInvalidator();

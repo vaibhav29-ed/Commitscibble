@@ -71,7 +71,7 @@ export async function runWebhookPush(
       operation: "INCREMENTAL_UPDATE",
       status: "QUEUED",
       correlationId,
-      jobId: `webhook:${data.deliveryId}`,
+      jobId: `webhook-${data.deliveryId}`,
       attempt: 1,
       metadata: { source: "webhook", deliveryId: data.deliveryId },
     });
@@ -84,7 +84,7 @@ export async function runWebhookPush(
       repositoryId: repository._id,
       repositoryFullName: repository.fullName,
       runId: run._id,
-      jobId: `webhook:${data.deliveryId}`,
+      jobId: `webhook-${data.deliveryId}`,
       type: "STARTED",
       message: `Push received on ${repository.defaultBranch}; queued incremental documentation analysis`,
       logId: correlationId,

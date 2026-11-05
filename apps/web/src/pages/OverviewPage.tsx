@@ -45,8 +45,8 @@ export default function OverviewPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <h1 className="type-page-title">Overview</h1>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             Documentation state derived from your connected repositories and persisted activity.
           </p>
         </div>
@@ -66,8 +66,8 @@ export default function OverviewPage() {
         <div className="flex items-start gap-3 rounded-lg border border-success/30 bg-success/5 p-4">
           <ShieldCheck className="mt-0.5 h-4 w-4 text-success" />
           <div>
-            <p className="text-xs font-medium">GitHub connected</p>
-            <p className="mt-1 text-2xs text-muted-foreground">
+            <p className="text-sm font-medium">GitHub connected</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               Connect a repository below, then generate its README. Proposals are created for
               review by default.
             </p>
@@ -76,12 +76,12 @@ export default function OverviewPage() {
       ) : null}
 
       {repositories.data?.githubError ? (
-        <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 text-xs">
+        <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div>
             <p className="font-medium">GitHub repositories could not be refreshed</p>
-            <p className="mt-1 text-2xs text-muted-foreground">{repositories.data.githubError}</p>
-            <Link to="/dashboard/settings" className="mt-2 inline-block text-2xs text-accent hover:underline">
+            <p className="mt-1 leading-relaxed text-muted-foreground">{repositories.data.githubError}</p>
+            <Link to="/dashboard/settings" className="mt-2 inline-block text-xs text-accent hover:underline">
               Reconnect GitHub authorization
             </Link>
           </div>
@@ -129,14 +129,14 @@ export default function OverviewPage() {
             {activeRuns.map((repo) => (
               <div key={repo.id} className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-2xs">{repo.fullName}</span>
+                  <span className="font-mono text-xs">{repo.fullName}</span>
                   <span className="text-muted-foreground">
                     {repo.lastRun ? operationLabel(repo.lastRun.operation) : "Run"}
                   </span>
                 </div>
                 <Link
                   to={`/dashboard/repositories/${repo.id}`}
-                  className="text-2xs font-medium text-accent hover:underline"
+                  className="text-xs font-medium text-accent hover:underline"
                 >
                   View progress
                 </Link>
@@ -151,9 +151,9 @@ export default function OverviewPage() {
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Repositories</CardTitle>
-              <p className="text-2xs text-muted-foreground">Current documentation state per repository</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">Current documentation state per repository</p>
             </div>
-            <Link to="/dashboard/repositories" className="text-2xs text-accent hover:underline">
+            <Link to="/dashboard/repositories" className="text-xs text-accent hover:underline">
               View all
             </Link>
           </CardHeader>
@@ -183,7 +183,7 @@ export default function OverviewPage() {
                     <div className="min-w-0 flex-1">
                       <Link
                         to={`/dashboard/repositories/${repo.id}`}
-                        className="truncate text-xs font-medium hover:underline"
+                        className="truncate text-sm font-medium hover:underline"
                       >
                         {repo.fullName}
                       </Link>
@@ -209,7 +209,7 @@ export default function OverviewPage() {
                             ? `/dashboard/reviews/${repo.pendingProposalRunId}`
                             : `/dashboard/repositories/${repo.id}`
                         }
-                        className="inline-flex items-center gap-1 text-2xs font-medium text-accent hover:underline"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
                       >
                         {repo.pendingProposalRunId ? "Review proposal" : "Open"}
                         <ArrowRight className="h-3 w-3" />
@@ -228,11 +228,11 @@ export default function OverviewPage() {
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-3.5 w-3.5" /> Recent activity
               </CardTitle>
-              <p className="text-2xs text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Persisted audit events, newest first
               </p>
             </div>
-            <Link to="/dashboard/activity" className="text-2xs text-accent hover:underline">
+            <Link to="/dashboard/activity" className="text-xs text-accent hover:underline">
               All activity
             </Link>
           </CardHeader>
@@ -253,7 +253,7 @@ export default function OverviewPage() {
       <Card>
         <CardHeader>
           <CardTitle>Documentation reviews</CardTitle>
-          <p className="text-2xs text-muted-foreground">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Proposals are only applied after approval when review mode is enabled.
           </p>
         </CardHeader>
@@ -271,8 +271,8 @@ export default function OverviewPage() {
               {pendingReviews.map((repo) => (
                 <li key={repo.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                   <div>
-                    <p className="text-xs font-medium">{repo.fullName}</p>
-                    <p className="mt-0.5 text-2xs text-muted-foreground">
+                    <p className="text-sm font-medium">{repo.fullName}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {repo.lastSuccessfulRunAt
                         ? `Generated ${relativeTime(repo.lastSuccessfulRunAt)}`
                         : "Proposal pending"}
@@ -324,9 +324,9 @@ function MetricCard({
         {value === null ? (
           <Skeleton className="h-7 w-12" />
         ) : (
-          <p className="text-2xl font-semibold tracking-tight">{value}</p>
+          <p className="text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
         )}
-        <p className="text-2xs text-muted-foreground">{hint}</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>
   );
