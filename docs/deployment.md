@@ -48,7 +48,7 @@ GITHUB_APP_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 CONVEX_URL=https://<deployment>.convex.cloud
 COMMITSCIBBLE_PUBLISH_TOKEN=<random 32+>
 GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash
 GROQ_API_KEY=...
 GROQ_MODEL=openai/gpt-oss-120b
 README_FILE_NAME=README.md
@@ -59,6 +59,17 @@ DOC_UPDATE_MODE=REVIEW
 providers otherwise. Billing variables are reserved and unused. Email is optional:
 set both `RESEND_API_KEY` and `EMAIL_FROM` to enable review-required, applied and
 run-failed notifications; leave either empty to disable notifications.
+
+`GEMINI_MODEL` must be a model id that is still served to the key's project. Google
+retires ids without notice; a retired id returns HTTP 404 and surfaces as
+`AI generation failed: gemini rejected the request`. List what a key can call with:
+
+```bash
+curl -sS "https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY" \
+  | jq -r '.models[].name'
+```
+
+Set the bare id (for example `gemini-3.5-flash`), never a `models/` prefix.
 
 Generate secrets with `openssl rand -base64 48` and `openssl rand -base64 32`, or:
 
@@ -227,7 +238,7 @@ the diff and approve. Check `/dashboard/activity` for the correlated event strea
 | Webhook 401 | Secret mismatch or a proxy altering the raw body |
 | Runs stay `QUEUED` | Worker not running or pointed at a different Redis |
 | Build cannot find `tsc` | Dev dependencies were skipped; build with `pnpm install --frozen-lockfile --prod=false` before the build script |
-| Generation fails with provider error | Missing/invalid key, model id retired, or quota exhausted |
+| Generation fails with provider error | Missing/invalid key, model id retired, or quota exhausted. A retired Gemini id returns 404 even though it still appears in the model list; set `GEMINI_MODEL` to a currently served id (for example `gemini-3.5-flash`) on **both** the API and worker services |
 | "unconfigured" realtime banner | `CONVEX_URL` / publish token absent or mismatched |
 | Proposal cannot apply | Branch moved; regenerate the proposal (stale protection) |
 | No README commit | Proposal still in review mode, or content was already current |

@@ -142,7 +142,11 @@ repositories that are connected and actively tracked enqueue work.
 
 `AI_PROVIDER_PRIMARY=gemini` and `AI_PROVIDER_FALLBACK=groq` by default. Set
 `GEMINI_API_KEY`/`GEMINI_MODEL` and `GROQ_API_KEY`/`GROQ_MODEL`. Model identifiers
-are environment configuration, not compiled-in constants. Timeouts, bounded retries
+are environment configuration, not compiled-in constants. The default Gemini id is
+`gemini-3.5-flash`; Google retires ids without notice, and a retired id fails with
+`AI generation failed: gemini rejected the request`. Check the ids a key can call
+with `GET https://generativelanguage.googleapis.com/v1beta/models` and update
+`GEMINI_MODEL` on both the API and worker. Timeouts, bounded retries
 with jitter, rate-limit handling, concurrency limits and provider fallback live in
 `packages/ai-engine`; usage records (provider, model, attempt, latency) are stored
 per run.

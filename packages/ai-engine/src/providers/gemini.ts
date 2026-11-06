@@ -64,6 +64,11 @@ export class GeminiProvider implements AiProvider {
           temperature: 0.2,
           maxOutputTokens: this.maxOutputTokens,
           responseMimeType: "application/json",
+          // Gemini 3 Flash spends part of the output budget on internal
+          // reasoning by default. A structured JSON document needs that budget
+          // for the payload, so reasoning is disabled for flash models. Pro
+          // models reject a zero budget, so the setting is only sent for flash.
+          ...(this.model.includes("flash") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
         },
       },
     });

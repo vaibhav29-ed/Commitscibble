@@ -54,7 +54,7 @@ export const envSchema = z.object({
   AI_ALLOW_MOCK: boolFromString.default(false),
 
   GEMINI_API_KEY: optional(z.string().min(1)),
-  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+  GEMINI_MODEL: z.string().min(1).default("gemini-3.5-flash"),
   GROQ_API_KEY: optional(z.string().min(1)),
   GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
 
