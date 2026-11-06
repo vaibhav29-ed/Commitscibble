@@ -23,7 +23,21 @@ import { processDocumentationJob, processWebhookJob } from "./processors.js";
 import { recoverStaleRuns } from "./recovery.js";
 import type { WorkerDeps } from "./lib/context.js";
 
+const STARTUP_VARS = [
+  "MONGO_URI",
+  "REDIS_URL",
+  "TOKEN_ENCRYPTION_KEY",
+  "GITHUB_WEBHOOK_SECRET",
+  "GEMINI_API_KEY",
+] as const;
+
 async function main(): Promise<void> {
+  // Presence only, never values. Makes a misconfigured Railway service obvious
+  // even when the log viewer collapses the structured error that follows.
+  process.stdout.write(
+    `Worker environment: ${STARTUP_VARS.map((key) => `${key}=${process.env[key] ? "set" : "missing"}`).join(", ")}\n`,
+  );
+
   const env = loadEnv();
   assertServiceEnv(env, { role: "worker" });
   const logger = createLogger(env.LOG_LEVEL);
@@ -180,12 +194,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(
-    `${JSON.stringify({
-      level: "error",
-      message: "Worker failed to start",
-      error: error instanceof Error ? error.message : String(error),
-    })}\n`,
-  );
+  // Plain text on purpose: hosting log viewers that render structured JSON only
+  // show the `message` field, which hid the real startup failure.
+  const detail = error instanceof Error ? (error.stack ?? error.message) : String(error);
+  process.stderr.write(`Worker failed to start: ${detail}\n`);
   process.exit(1);
 });
