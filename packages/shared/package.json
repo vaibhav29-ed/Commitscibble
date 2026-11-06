@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./node": {
-      "types": "./dist/node.d.ts",
+      "types": "./src/node.ts",
       "default": "./dist/node.js"
     }
   },
