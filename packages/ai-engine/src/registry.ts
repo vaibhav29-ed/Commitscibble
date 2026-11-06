@@ -89,9 +89,10 @@ export class AiOrchestrator {
           try {
             const response = await provider.generateJson(request);
             const latencyMs = Date.now() - startedAt;
+            const model = response.model ?? provider.model;
             const record: UsageRecord = {
               provider: provider.name,
-              model: provider.model,
+              model,
               operation: request.operation,
               attempt: attempt + 1,
               latencyMs,
@@ -107,7 +108,7 @@ export class AiOrchestrator {
             return {
               data: parsed,
               provider: provider.name,
-              model: provider.model,
+              model,
               attempt: attempt + 1,
               latencyMs,
               usage,

@@ -29,6 +29,13 @@ export interface GeminiProviderOptions {
 }
 
 /**
+ * Google retires model ids for new API keys without removing them from the
+ * models list. When the configured id stops being served, these well-known
+ * flash ids are tried in order so a retired default cannot brick generation.
+ */
+const MODEL_FALLBACKS = ["gemini-3.5-flash", "gemini-flash-latest"];
+
+/**
  * Gemini via the official Generative Language REST API. Model ids are fully
  * environment-configured so a retired model never needs a code change.
  */
@@ -51,9 +58,23 @@ export class GeminiProvider implements AiProvider {
   }
 
   async generateJson(request: AiJsonRequest): Promise<AiRawResponse> {
+    const candidates = [...new Set([this.model, ...MODEL_FALLBACKS])];
+    let lastError: unknown;
+    for (const model of candidates) {
+      try {
+        return await this.request(model, request);
+      } catch (error) {
+        lastError = error;
+        if (!isModelUnavailable(error)) throw error;
+      }
+    }
+    throw lastError;
+  }
+
+  private async request(model: string, request: AiJsonRequest): Promise<AiRawResponse> {
     const payload = await postJson({
       provider: this.name,
-      url: `${this.baseUrl}/models/${encodeURIComponent(this.model)}:generateContent`,
+      url: `${this.baseUrl}/models/${encodeURIComponent(model)}:generateContent`,
       headers: { "x-goog-api-key": this.apiKey },
       timeoutMs: this.timeoutMs,
       fetchImpl: this.fetchImpl,
@@ -68,7 +89,7 @@ export class GeminiProvider implements AiProvider {
           // reasoning by default. A structured JSON document needs that budget
           // for the payload, so reasoning is disabled for flash models. Pro
           // models reject a zero budget, so the setting is only sent for flash.
-          ...(this.model.includes("flash") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+          ...(model.includes("flash") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
         },
       },
     });
@@ -93,6 +114,11 @@ export class GeminiProvider implements AiProvider {
         retryable: true,
       });
     }
-    return { text };
+    return { text, model };
   }
+}
+
+/** A retired model returns 404; an overloaded one returns 503. */
+function isModelUnavailable(error: unknown): boolean {
+  return error instanceof AiProviderError && (error.status === 404 || error.status === 503);
 }

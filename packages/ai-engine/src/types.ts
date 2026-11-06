@@ -9,6 +9,8 @@ export interface AiJsonRequest {
 
 export interface AiRawResponse {
   text: string;
+  /** Model that actually produced the text, when the provider can report it. */
+  model?: string;
 }
 
 export interface AiProvider {

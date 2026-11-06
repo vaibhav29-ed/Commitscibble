@@ -146,7 +146,9 @@ are environment configuration, not compiled-in constants. The default Gemini id 
 `gemini-3.5-flash`; Google retires ids without notice, and a retired id fails with
 `AI generation failed: gemini rejected the request`. Check the ids a key can call
 with `GET https://generativelanguage.googleapis.com/v1beta/models` and update
-`GEMINI_MODEL` on both the API and worker. Timeouts, bounded retries
+`GEMINI_MODEL` on both the API and worker. When the configured id is retired (404)
+or the model is overloaded (503), the Gemini provider retries the next known-good
+flash id and records the model that actually answered. Timeouts, bounded retries
 with jitter, rate-limit handling, concurrency limits and provider fallback live in
 `packages/ai-engine`; usage records (provider, model, attempt, latency) are stored
 per run.

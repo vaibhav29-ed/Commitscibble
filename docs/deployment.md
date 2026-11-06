@@ -69,7 +69,9 @@ curl -sS "https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_AP
   | jq -r '.models[].name'
 ```
 
-Set the bare id (for example `gemini-3.5-flash`), never a `models/` prefix.
+Set the bare id (for example `gemini-3.5-flash`), never a `models/` prefix. If the
+configured id returns 404 or 503, the Gemini provider retries the next known-good
+flash id, so a retired default does not stop generation.
 
 Generate secrets with `openssl rand -base64 48` and `openssl rand -base64 32`, or:
 
