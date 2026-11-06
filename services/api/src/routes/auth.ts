@@ -5,7 +5,7 @@ import { newId } from "@commitscibble/shared/node";
 import { createOAuthState, verifyOAuthState } from "@commitscibble/github";
 import { Repository } from "@commitscibble/persistence";
 import { deriveRealtimeReadKey } from "@commitscibble/shared/node";
-import type { Env } from "@commitscibble/config";
+import { publicAppUrl, type Env } from "@commitscibble/config";
 import { asyncHandler, sendOk } from "../lib/http.js";
 import { CSRF_COOKIE, SESSION_COOKIE, type SessionService } from "../lib/session.js";
 import type { GithubAccountService } from "../services/github-account.js";
@@ -40,7 +40,7 @@ export function createPublicAuthRouter(deps: {
   router.get(
     "/github/app/callback",
     asyncHandler(async (req, res) => {
-      const appUrl = deps.env.APP_URL;
+      const appUrl = publicAppUrl(deps.env);
       const session = await deps.sessions.resolve(
         parseCookie(req.headers.cookie ?? "")[SESSION_COOKIE],
       );
@@ -79,7 +79,7 @@ export function createPublicAuthRouter(deps: {
   router.get(
     "/github/callback",
     asyncHandler(async (req, res) => {
-      const appUrl = deps.env.APP_URL;
+      const appUrl = publicAppUrl(deps.env);
       const failure = (code: string): void => {
         res.redirect(302, `${appUrl}/signin?error=${encodeURIComponent(code)}`);
       };

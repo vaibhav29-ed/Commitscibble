@@ -1,3 +1,4 @@
+import { publicAppUrl } from "@commitscibble/config";
 import type { EmailMessage } from "@commitscibble/email";
 import {
   documentationAppliedEmail,
@@ -65,7 +66,7 @@ export function notifyReviewRequired(
         repositoryFullName: repository.fullName,
         repositoryHtmlUrl: repository.htmlUrl,
         runId: String(run._id),
-        appUrl: deps.env.APP_URL,
+        appUrl: publicAppUrl(deps.env),
         summary: args.summary,
         additions: args.additions,
         deletions: args.deletions,
@@ -96,7 +97,7 @@ export function notifyApplied(
         repositoryFullName: repository.fullName,
         repositoryHtmlUrl: repository.htmlUrl,
         runId: String(run._id),
-        appUrl: deps.env.APP_URL,
+        appUrl: publicAppUrl(deps.env),
         branch: args.branch,
         readmePath: repository.settings.readmePath,
         commitSha: args.commitSha,
@@ -125,7 +126,7 @@ export function notifyRunFailed(
         repositoryFullName: repository.fullName,
         repositoryHtmlUrl: repository.htmlUrl,
         runId: String(run._id),
-        appUrl: deps.env.APP_URL,
+        appUrl: publicAppUrl(deps.env),
         code: args.code,
         message: args.message,
       }),

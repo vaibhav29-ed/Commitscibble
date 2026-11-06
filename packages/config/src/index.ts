@@ -81,6 +81,24 @@ export const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+const localUrlPattern = /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i;
+
+/**
+ * Public URL of the web app. `APP_URL` is authoritative, but a production
+ * deployment still carrying the localhost default would send users and email
+ * links to their own machine. In that case fall back to the origin of the
+ * configured OAuth callback, which always lives on the web host.
+ */
+export function publicAppUrl(env: Env): string {
+  if (!localUrlPattern.test(env.APP_URL)) return env.APP_URL;
+  if (env.NODE_ENV !== "production" || !env.GITHUB_CALLBACK_URL) return env.APP_URL;
+  try {
+    return new URL(env.GITHUB_CALLBACK_URL).origin;
+  } catch {
+    return env.APP_URL;
+  }
+}
+
 let envFileLoaded = false;
 
 /**

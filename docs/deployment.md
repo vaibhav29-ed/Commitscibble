@@ -218,6 +218,7 @@ the diff and approve. Check `/dashboard/activity` for the correlated event strea
 | Symptom | Likely cause |
 | --- | --- |
 | Connect GitHub opens `localhost` | The Vercel project has `NODE_ENV=development` (or a localhost `VITE_API_URL`). Remove both, then redeploy; the build now fails fast if the bundle is a development build |
+| After GitHub sign-in the browser lands on `localhost:5173` | `APP_URL` on the API service is unset or still the localhost default. Set `APP_URL=https://<web-host>`; until then the API derives it from `GITHUB_CALLBACK_URL` in production |
 | Build fails with "refusing to ship this bundle" | The bundle was built in development mode or from a stale commit; check the Vercel environment variables and the build log above the error |
 | `/ready` 503 | MongoDB or Redis unreachable, or wrong credentials |
 | OAuth `state` mismatch | Callback URL or cookie domain misconfigured; cookies blocked cross-site |
