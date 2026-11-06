@@ -34,18 +34,31 @@ export class AiProviderError extends Error {
   readonly retryable: boolean;
   readonly fallbackEligible: boolean;
   readonly status: number | null;
+  /** Model id that was sent to the provider for the failing request. */
+  readonly model: string | null;
+  /** Short, redacted excerpt of the provider's error body. Never the API key. */
+  readonly responseSnippet: string | null;
 
   constructor(
     provider: AiProviderName,
     code: AiFailureCode,
     message: string,
-    options: { retryable?: boolean; fallbackEligible?: boolean; status?: number | null } = {},
+    options: {
+      retryable?: boolean;
+      fallbackEligible?: boolean;
+      status?: number | null;
+      model?: string | null;
+      responseSnippet?: string | null;
+      cause?: unknown;
+    } = {},
   ) {
-    super(message);
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = "AiProviderError";
     this.provider = provider;
     this.code = code;
     this.status = options.status ?? null;
+    this.model = options.model ?? null;
+    this.responseSnippet = options.responseSnippet ?? null;
     this.retryable =
       options.retryable ??
       (code === "RATE_LIMITED" || code === "TIMEOUT" || code === "NETWORK" || code === "SERVER");

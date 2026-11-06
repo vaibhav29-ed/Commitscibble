@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { AppError, ERROR_CODES, type UsageRecord } from "@commitscibble/shared";
+import { AppError, ERROR_CODES, redactSecrets, type UsageRecord } from "@commitscibble/shared";
 import type {
   AiJsonRequest,
   AiOrchestratorOptions,
@@ -80,6 +80,7 @@ export class AiOrchestrator {
 
     const usage: UsageRecord[] = [];
     let lastError: AiProviderError | null = null;
+    let retryableFailure = false;
 
     for (const provider of this.options.providers) {
       const release = await this.semaphore(provider.name).acquire();
@@ -104,7 +105,7 @@ export class AiOrchestrator {
             usage.push(record);
             this.record(record);
 
-            const parsed = parseAndValidate(response.text, schema, provider.name);
+            const parsed = parseAndValidate(response.text, schema, provider.name, model);
             return {
               data: parsed,
               provider: provider.name,
@@ -117,23 +118,30 @@ export class AiOrchestrator {
           } catch (error) {
             const providerError = normalizeError(error, provider.name);
             lastError = providerError;
+            // Remember whether any failure in the chain was transient so the
+            // queue knows a retry can help even when the final provider failed
+            // permanently.
+            retryableFailure = retryableFailure || providerError.retryable;
+            const model = providerError.model ?? provider.model;
             const latencyMs = Date.now() - startedAt;
-            const retryable = providerError.retryable && attempt < this.options.maxRetries;
+            const willRetry = providerError.retryable && attempt < this.options.maxRetries;
             const record: UsageRecord = {
               provider: provider.name,
-              model: provider.model,
+              model,
               operation: request.operation,
               attempt: attempt + 1,
               latencyMs,
               promptChars: request.prompt.length + request.system.length,
               completionChars: 0,
-              outcome: retryable ? "RETRYABLE_FAILURE" : "FAILED",
+              outcome: willRetry ? "RETRYABLE_FAILURE" : "FAILED",
               errorCode: providerError.code,
+              status: providerError.status,
+              providerMessage: redactSecrets(providerError.message).slice(0, 500),
             };
             usage.push(record);
             this.record(record);
 
-            if (!retryable) break;
+            if (!willRetry) break;
             const base = this.options.baseDelayMs ?? 500;
             const cap = this.options.maxDelayMs ?? 8000;
             const delay = Math.min(cap, base * 2 ** attempt) * (0.5 + this.random());
@@ -148,7 +156,7 @@ export class AiOrchestrator {
       if (lastError) {
         const fallbackRecord: UsageRecord = {
           provider: provider.name,
-          model: provider.model,
+          model: lastError.model ?? provider.model,
           operation: request.operation,
           attempt: 0,
           latencyMs: 0,
@@ -156,6 +164,8 @@ export class AiOrchestrator {
           completionChars: 0,
           outcome: "FALLBACK",
           errorCode: lastError.code,
+          status: lastError.status,
+          providerMessage: redactSecrets(lastError.message).slice(0, 500),
         };
         usage.push(fallbackRecord);
         this.record(fallbackRecord);
@@ -165,9 +175,19 @@ export class AiOrchestrator {
     throw new AppError(
       ERROR_CODES.AI_PROVIDER_ERROR,
       lastError
-        ? `AI generation failed: ${describeFailure(lastError.provider, lastError.code)}`
+        ? `AI generation failed: ${describeFailure(lastError)}`
         : "AI generation failed: no provider produced a response",
-      { httpStatus: 502, retryable: true, details: { safeCode: lastError?.code ?? "UNKNOWN" } },
+      {
+        httpStatus: 502,
+        retryable: retryableFailure,
+        details: {
+          safeCode: lastError?.code ?? "UNKNOWN",
+          provider: lastError?.provider ?? null,
+          model: lastError?.model ?? null,
+          status: lastError?.status ?? null,
+        },
+        cause: lastError ?? undefined,
+      },
     );
   }
 
@@ -176,20 +196,23 @@ export class AiOrchestrator {
   }
 }
 
-function describeFailure(provider: string, code: string): string {
-  switch (code) {
+function describeFailure(error: AiProviderError): string {
+  const provider = error.provider;
+  const status = error.status ? ` (HTTP ${error.status})` : "";
+  const model = error.model ? ` using ${error.model}` : "";
+  switch (error.code) {
     case "RATE_LIMITED":
-      return `${provider} is rate limited. Retry later or configure a fallback provider.`;
+      return `${provider} is rate limited${status}${model}. Retry later or configure a fallback provider.`;
     case "AUTH":
-      return `${provider} credentials were rejected. Check the API key.`;
+      return `${provider} credentials were rejected${status}${model}. Check the API key.`;
     case "TIMEOUT":
-      return `${provider} timed out.`;
+      return `${provider} timed out${model}.`;
     case "INVALID_OUTPUT":
-      return `${provider} returned output that did not match the required schema.`;
+      return `${provider} returned output that did not match the required schema${model}.`;
     case "INVALID_REQUEST":
-      return `${provider} rejected the request. Check the configured model identifier.`;
+      return `${provider} rejected the request${status}${model}. Check the configured model identifier.`;
     default:
-      return `${provider} is temporarily unavailable (${code}).`;
+      return `${provider} is temporarily unavailable (${error.code}${status})${model}.`;
   }
 }
 
@@ -209,16 +232,19 @@ export function parseAndValidate<T>(
   text: string,
   schema: z.ZodType<T>,
   provider: string,
+  model?: string,
 ): T {
   const cleaned = stripJsonFences(text);
   let parsed: unknown;
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new ProviderError(provider as AiProvider["name"], "INVALID_OUTPUT", "Model output was not valid JSON", {
-      retryable: true,
-      fallbackEligible: true,
-    });
+    throw new ProviderError(
+      provider as AiProvider["name"],
+      "INVALID_OUTPUT",
+      `Model output was not valid JSON${model ? ` (model ${model})` : ""}`,
+      { retryable: true, fallbackEligible: true, model: model ?? null },
+    );
   }
   const result = schema.safeParse(parsed);
   if (!result.success) {
@@ -228,8 +254,8 @@ export function parseAndValidate<T>(
       `Model output did not match the documentation schema (${result.error.issues
         .slice(0, 3)
         .map((issue) => issue.path.join("."))
-        .join(", ")})`,
-      { retryable: true, fallbackEligible: true },
+        .join(", ")})${model ? ` (model ${model})` : ""}`,
+      { retryable: true, fallbackEligible: true, model: model ?? null },
     );
   }
   return result.data;

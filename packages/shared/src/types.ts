@@ -197,4 +197,8 @@ export interface UsageRecord {
   completionChars: number;
   outcome: "SUCCESS" | "FAILED" | "RETRYABLE_FAILURE" | "FALLBACK";
   errorCode: string | null;
+  /** HTTP status returned by the provider, when it responded. */
+  status?: number | null;
+  /** Redacted provider message for failed attempts; safe to persist and log. */
+  providerMessage?: string | null;
 }

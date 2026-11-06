@@ -74,6 +74,7 @@ export class GeminiProvider implements AiProvider {
   private async request(model: string, request: AiJsonRequest): Promise<AiRawResponse> {
     const payload = await postJson({
       provider: this.name,
+      model,
       url: `${this.baseUrl}/models/${encodeURIComponent(model)}:generateContent`,
       headers: { "x-goog-api-key": this.apiKey },
       timeoutMs: this.timeoutMs,
@@ -96,9 +97,12 @@ export class GeminiProvider implements AiProvider {
 
     const parsed = responseSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new AiProviderError(this.name, "INVALID_OUTPUT", "Gemini returned an unexpected payload", {
-        retryable: true,
-      });
+      throw new AiProviderError(
+        this.name,
+        "INVALID_OUTPUT",
+        `Gemini returned an unexpected payload (model ${model})`,
+        { retryable: true, model },
+      );
     }
     if (parsed.data.promptFeedback?.blockReason) {
       throw new AiProviderError(
@@ -110,9 +114,12 @@ export class GeminiProvider implements AiProvider {
     }
     const text = parsed.data.candidates[0]?.content?.parts.map((part) => part.text ?? "").join("") ?? "";
     if (!text.trim()) {
-      throw new AiProviderError(this.name, "INVALID_OUTPUT", "Gemini returned an empty response", {
-        retryable: true,
-      });
+      throw new AiProviderError(
+        this.name,
+        "INVALID_OUTPUT",
+        `Gemini returned an empty response (model ${model})`,
+        { retryable: true, model },
+      );
     }
     return { text, model };
   }

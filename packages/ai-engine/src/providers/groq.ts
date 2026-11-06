@@ -45,6 +45,7 @@ export class GroqProvider implements AiProvider {
   async generateJson(request: AiJsonRequest): Promise<AiRawResponse> {
     const payload = await postJson({
       provider: this.name,
+      model: this.model,
       url: `${this.baseUrl}/chat/completions`,
       headers: { Authorization: `Bearer ${this.apiKey}` },
       timeoutMs: this.timeoutMs,
@@ -63,16 +64,22 @@ export class GroqProvider implements AiProvider {
 
     const parsed = responseSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new AiProviderError(this.name, "INVALID_OUTPUT", "Groq returned an unexpected payload", {
-        retryable: true,
-      });
+      throw new AiProviderError(
+        this.name,
+        "INVALID_OUTPUT",
+        `Groq returned an unexpected payload (model ${this.model})`,
+        { retryable: true, model: this.model },
+      );
     }
     const text = parsed.data.choices[0]?.message?.content ?? "";
     if (!text.trim()) {
-      throw new AiProviderError(this.name, "INVALID_OUTPUT", "Groq returned an empty response", {
-        retryable: true,
-      });
+      throw new AiProviderError(
+        this.name,
+        "INVALID_OUTPUT",
+        `Groq returned an empty response (model ${this.model})`,
+        { retryable: true, model: this.model },
+      );
     }
-    return { text };
+    return { text, model: this.model };
   }
 }

@@ -9,10 +9,25 @@ import { runWebhookPush } from "./pipelines/webhook.js";
 import { prepareRun, failRun } from "./lib/context.js";
 import { applyProposal } from "./pipelines/apply.js";
 import { DocumentationProposal } from "@commitscibble/persistence";
+import { toQueueError } from "./lib/errors.js";
 
 const JOB_TIMEOUT_MS = 20 * 60 * 1000;
 
 export async function processDocumentationJob(
+  deps: WorkerDeps,
+  job: Job<DocumentationJobData>,
+): Promise<void> {
+  try {
+    await runDocumentationJob(deps, job);
+  } catch (error) {
+    // Permanent failures (missing key, rejected model, invalid request) fail
+    // the same way on every BullMQ attempt, so mark them unrecoverable instead
+    // of replaying them and burning provider quota.
+    throw toQueueError(error);
+  }
+}
+
+async function runDocumentationJob(
   deps: WorkerDeps,
   job: Job<DocumentationJobData>,
 ): Promise<void> {

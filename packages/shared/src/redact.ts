@@ -20,6 +20,12 @@ const SECRET_PATTERNS: { name: string; pattern: RegExp; replacement: string }[] 
     replacement: "[REDACTED_API_KEY]",
   },
   {
+    // Google AI Studio now issues keys in this shorter AQ. format.
+    name: "google_aq_api_key",
+    pattern: /\bAQ\.[A-Za-z0-9_-]{30,}\b/g,
+    replacement: "[REDACTED_API_KEY]",
+  },
+  {
     name: "openai_style_key",
     pattern: /\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b/g,
     replacement: "[REDACTED_API_KEY]",
@@ -101,6 +107,7 @@ const KNOWN_SECRET_MARKERS = [
   /github_pat_[A-Za-z0-9_]{20,}/,
   /gsk_[A-Za-z0-9]{20,}/,
   /AIza[0-9A-Za-z\-_]{30,}/,
+  /AQ\.[A-Za-z0-9_-]{30,}/,
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
 ];
 

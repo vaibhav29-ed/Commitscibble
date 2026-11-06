@@ -21,6 +21,7 @@ import { createLogger } from "./lib/logger.js";
 import { createRedisConnection, WorkerQueueProducer } from "./queue.js";
 import { processDocumentationJob, processWebhookJob } from "./processors.js";
 import { recoverStaleRuns } from "./recovery.js";
+import { describeError } from "./lib/errors.js";
 import type { WorkerDeps } from "./lib/context.js";
 
 const STARTUP_VARS = [
@@ -29,6 +30,11 @@ const STARTUP_VARS = [
   "TOKEN_ENCRYPTION_KEY",
   "GITHUB_WEBHOOK_SECRET",
   "GEMINI_API_KEY",
+  "GEMINI_MODEL",
+  "GROQ_API_KEY",
+  "GROQ_MODEL",
+  "AI_PROVIDER_PRIMARY",
+  "AI_PROVIDER_FALLBACK",
 ] as const;
 
 async function main(): Promise<void> {
@@ -41,6 +47,19 @@ async function main(): Promise<void> {
   const env = loadEnv();
   assertServiceEnv(env, { role: "worker" });
   const logger = createLogger(env.LOG_LEVEL);
+
+  // Non-secret AI configuration, logged explicitly so a wrong model or a
+  // missing fallback key is visible without guessing from provider errors.
+  logger.info("AI configuration", {
+    primaryProvider: env.AI_PROVIDER_PRIMARY,
+    fallbackProvider: env.AI_PROVIDER_FALLBACK ?? null,
+    geminiModel: env.GEMINI_MODEL,
+    geminiKeyConfigured: Boolean(env.GEMINI_API_KEY),
+    groqModel: env.GROQ_MODEL,
+    groqKeyConfigured: Boolean(env.GROQ_API_KEY),
+    maxRetries: env.AI_MAX_RETRIES,
+    timeoutMs: env.AI_TIMEOUT_MS,
+  });
 
   await connectDatabase({ uri: env.MONGO_URI as string });
   await initializeIndexes({
@@ -72,6 +91,9 @@ async function main(): Promise<void> {
   if (orchestrator.providers.length === 0) {
     logger.warn("No AI providers configured; documentation jobs will fail until keys are set");
   }
+  logger.info("AI provider chain", {
+    chain: orchestrator.providers.map((provider) => `${provider.name}:${provider.model}`),
+  });
   const ai = new DocumentationAi(orchestrator);
 
   const email = createEmailSender(emailConfig(env), {
@@ -135,15 +157,20 @@ async function main(): Promise<void> {
 
   for (const worker of [docsWorker, webhookWorker, outboxWorker]) {
     worker.on("failed", (job, error) => {
+      const diagnostics = describeError(error);
       logger.error("Job failed", {
         queue: worker.name,
         jobId: job?.id ?? null,
+        runId: (job?.data as { runId?: string } | undefined)?.runId ?? null,
         attemptsMade: job?.attemptsMade ?? null,
-        error: error instanceof Error ? error.message : "unknown",
+        maxAttempts: job?.opts?.attempts ?? null,
+        unrecoverable: error.name === "UnrecoverableError",
+        ...diagnostics,
       });
     });
     worker.on("error", (error) => {
-      logger.error("Worker connection error", { queue: worker.name, error: error.message });
+      const diagnostics = describeError(error);
+      logger.error("Worker connection error", { queue: worker.name, ...diagnostics });
     });
   }
 
@@ -183,12 +210,10 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));
   process.on("unhandledRejection", (reason) => {
-    logger.error("Unhandled rejection in worker", {
-      error: reason instanceof Error ? reason.message : String(reason),
-    });
+    logger.error("Unhandled rejection in worker", { ...describeError(reason) });
   });
   process.on("uncaughtException", (error) => {
-    logger.error("Uncaught exception in worker", { error: error.message });
+    logger.error("Uncaught exception in worker", { ...describeError(error) });
     void shutdown("uncaughtException");
   });
 }

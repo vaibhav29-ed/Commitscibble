@@ -193,13 +193,30 @@ export async function failRun(
     void deps.nudgeOutbox().catch(() => undefined);
     return;
   }
+  const diagnostics = describeError(error);
   const appError =
     error instanceof AppError
       ? error
       : new AppError(ERROR_CODES.INTERNAL_ERROR, "Documentation run failed unexpectedly", {
           cause: error,
         });
-  const message = safeErrorMessage(appError);
+  // Keep the AppError message for the user-facing run record, but fall back to
+  // the original exception message when the error arrived unwrapped.
+  const message =
+    error instanceof AppError
+      ? safeErrorMessage(error)
+      : (diagnostics.causeMessage ?? diagnostics.message).slice(0, 400);
+  const failure = {
+    name: diagnostics.name,
+    code: diagnostics.code,
+    status: diagnostics.status,
+    provider: diagnostics.provider,
+    model: diagnostics.model,
+    providerCode: diagnostics.providerCode,
+    providerMessage: diagnostics.providerMessage,
+    responseSnippet: diagnostics.responseSnippet,
+    causeMessage: diagnostics.causeMessage,
+  };
   try {
     const updated = await DocumentationRun.updateOne(
       { _id: run._id, status: "RUNNING" },
@@ -209,6 +226,9 @@ export async function failRun(
           completedAt: new Date(),
           errorCode: appError.code,
           errorMessage: message,
+          provider: diagnostics.provider,
+          model: diagnostics.model,
+          "metadata.failure": failure,
         },
       },
     );
@@ -250,10 +270,17 @@ export async function failRun(
       }
     }
   } finally {
+    // Everything the provider told us, redacted: provider, model, HTTP status,
+    // provider error code and the original message plus stack. Without this the
+    // log only showed the generic AppError message.
     deps.logger.error("Documentation run failed", {
       runId: String(run._id),
+      repositoryId: String(run.repositoryId),
       code: appError.code,
-      error: redactSecrets(appError.message),
+      errorMessage: message,
+      ...diagnostics,
+      stack: diagnostics.stack,
+      causeStack: diagnostics.causeStack,
     });
     void deps.nudgeOutbox().catch(() => undefined);
   }

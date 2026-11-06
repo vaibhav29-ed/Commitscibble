@@ -45,7 +45,10 @@ export const envSchema = z.object({
   GITHUB_APP_PRIVATE_KEY: optional(z.string().min(1)),
 
   AI_PROVIDER_PRIMARY: z.enum(["gemini", "groq", "mock"]).default("gemini"),
-  AI_PROVIDER_FALLBACK: optional(z.enum(["gemini", "groq", "mock"])),
+  AI_PROVIDER_FALLBACK: z.preprocess(
+    (value) => (value === "" || value === undefined ? "groq" : value),
+    z.enum(["gemini", "groq", "mock"]),
+  ),
   AI_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
   AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(300000).default(60000),
   AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(256).max(65536).default(8192),

@@ -1,5 +1,5 @@
+import { redactSecrets, type AiProviderName } from "@commitscibble/shared";
 import { AiProviderError } from "../types.js";
-import type { AiProviderName } from "@commitscibble/shared";
 
 export interface FetchProviderOptions {
   apiKey: string;
@@ -10,8 +10,16 @@ export interface FetchProviderOptions {
   baseUrl?: string;
 }
 
+/** Provider error bodies are short; keep a redacted one-line excerpt for logs. */
+function responseSnippet(body: string): string | null {
+  const compact = body.replace(/\s+/g, " ").trim();
+  if (!compact) return null;
+  return redactSecrets(compact).slice(0, 500);
+}
+
 export async function postJson(options: {
   provider: AiProviderName;
+  model: string;
   url: string;
   headers: Record<string, string>;
   body: unknown;
@@ -35,50 +43,61 @@ export async function postJson(options: {
       options.provider,
       aborted ? "TIMEOUT" : "NETWORK",
       aborted
-        ? `${options.provider} request timed out after ${options.timeoutMs}ms`
-        : `${options.provider} request failed due to a network error`,
-      { retryable: true },
+        ? `${options.provider} request timed out after ${options.timeoutMs}ms (model ${options.model})`
+        : `${options.provider} request failed due to a network error (model ${options.model})`,
+      { retryable: true, model: options.model, cause: aborted ? undefined : error },
     );
   } finally {
     clearTimeout(timeout);
   }
 
-  if (response.status === 429) {
-    throw new AiProviderError(options.provider, "RATE_LIMITED", `${options.provider} rate limit reached`, {
-      retryable: true,
-      status: 429,
-    });
+  const rawBody = await response.text().catch(() => "");
+  const status = response.status;
+  const snippet = responseSnippet(rawBody);
+  const detail = snippet ? `: ${snippet}` : "";
+  const base = { status, model: options.model, responseSnippet: snippet };
+
+  if (status === 429) {
+    throw new AiProviderError(
+      options.provider,
+      "RATE_LIMITED",
+      `${options.provider} rate limit reached (HTTP 429, model ${options.model})${detail}`,
+      { ...base, retryable: true },
+    );
   }
-  if (response.status === 401 || response.status === 403) {
+  if (status === 401 || status === 403) {
     throw new AiProviderError(
       options.provider,
       "AUTH",
-      `${options.provider} rejected the configured credentials`,
-      { retryable: false, fallbackEligible: true, status: response.status },
+      `${options.provider} rejected the configured credentials (HTTP ${status}, model ${options.model})${detail}`,
+      { ...base, retryable: false, fallbackEligible: true },
     );
   }
-  if (response.status === 400 || response.status === 404 || response.status === 422) {
+  if (status === 400 || status === 404 || status === 422) {
     throw new AiProviderError(
       options.provider,
       "INVALID_REQUEST",
-      `${options.provider} rejected the request (status ${response.status}); check the configured model id`,
-      { retryable: false, fallbackEligible: true, status: response.status },
+      `${options.provider} rejected the request (HTTP ${status}, model ${options.model})${detail}`,
+      { ...base, retryable: false, fallbackEligible: true },
     );
   }
   if (!response.ok) {
     throw new AiProviderError(
       options.provider,
       "SERVER",
-      `${options.provider} upstream error (status ${response.status})`,
-      { retryable: true, status: response.status },
+      `${options.provider} upstream error (HTTP ${status}, model ${options.model})${detail}`,
+      { ...base, retryable: true },
     );
   }
 
   try {
-    return await response.json();
+    return JSON.parse(rawBody) as unknown;
   } catch {
-    throw new AiProviderError(options.provider, "SERVER", `${options.provider} returned invalid JSON`, {
-      retryable: true,
-    });
+    throw new AiProviderError(
+      options.provider,
+      "SERVER",
+      `${options.provider} returned invalid JSON (HTTP ${status}, model ${options.model})`,
+      { ...base, retryable: true },
+    );
   }
 }
