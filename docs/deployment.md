@@ -116,6 +116,15 @@ Import the repository with the repository root as the project root. `vercel.json
 installs with the lockfile, builds `@commitscibble/shared` and `@commitscibble/web`,
 serves `apps/web/dist`, rewrites SPA routes and sets security headers.
 
+> **Do not set `NODE_ENV` in the Vercel project**, and do not paste `.env.example`
+> into the dashboard. Vercel sets `NODE_ENV=production` itself. An inherited
+> `NODE_ENV=development` makes Vite compile in development mode: the site ships the
+> React dev bundle and `import.meta.env.DEV` is `true` at build time, which is how
+> `http://localhost:4000` used to end up in a production bundle. `vercel.json` now
+> forces `NODE_ENV=production` for install and build and runs
+> `scripts/verify-web-build.mjs`, which fails the deployment if the bundle is a
+> development build or is missing the runtime localhost guard.
+
 Session cookies are `SameSite=Lax`, so an API on a different registrable domain
 (for example a `*.vercel.app` web app with a `*.up.railway.app` API) will not
 receive the cookie on cross-site `fetch` calls. Choose **one** of these:
@@ -208,7 +217,8 @@ the diff and approve. Check `/dashboard/activity` for the correlated event strea
 
 | Symptom | Likely cause |
 | --- | --- |
-| Connect GitHub opens `localhost` | Vercel was built without `VITE_API_URL` and without the proxy rewrites; redeploy after configuring one of them |
+| Connect GitHub opens `localhost` | The Vercel project has `NODE_ENV=development` (or a localhost `VITE_API_URL`). Remove both, then redeploy; the build now fails fast if the bundle is a development build |
+| Build fails with "refusing to ship this bundle" | The bundle was built in development mode or from a stale commit; check the Vercel environment variables and the build log above the error |
 | `/ready` 503 | MongoDB or Redis unreachable, or wrong credentials |
 | OAuth `state` mismatch | Callback URL or cookie domain misconfigured; cookies blocked cross-site |
 | Signed in, then immediately signed out | Web and API are on different registrable domains; use the Vercel proxy or a shared custom domain |
