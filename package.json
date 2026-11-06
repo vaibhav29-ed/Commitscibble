@@ -10,6 +10,10 @@
   "scripts": {
     "dev": "pnpm -r --parallel --filter \"./services/*\" --filter \"./apps/*\" run dev",
     "build": "pnpm -r run build",
+    "build:api": "pnpm --filter \"@commitscibble/api...\" build",
+    "build:worker": "pnpm --filter \"@commitscibble/worker...\" build",
+    "start:api": "node services/api/dist/server.js",
+    "start:worker": "node services/worker/dist/index.js",
     "typecheck": "pnpm run typecheck:node && pnpm --filter @commitscibble/web run typecheck",
     "typecheck:node": "tsc -p tsconfig.check.json --noEmit",
     "test": "vitest run",

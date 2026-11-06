@@ -10,7 +10,19 @@ import type {
   UsageRecord,
 } from "@commitscibble/shared";
 
-export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:4000";
+const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "");
+
+/**
+ * Production builds never fall back to localhost. With no VITE_API_URL they use
+ * same-origin requests, which is what the Vercel proxy setup in docs/deployment.md
+ * expects. Local development keeps talking to the API on port 4000.
+ */
+export const API_URL =
+  configuredApiUrl && configuredApiUrl.length > 0
+    ? configuredApiUrl
+    : import.meta.env.DEV
+      ? "http://localhost:4000"
+      : "";
 
 export class ApiError extends Error {
   constructor(

@@ -235,11 +235,11 @@ browsers once with `npx playwright install chromium`.
 
 ## Deployment
 
-The frontend deploys to Vercel (`vercel.json`), the API and worker to Render
-(`render.yaml`), Redis to a managed instance, MongoDB to Atlas, and realtime to
-Convex. Full instructions, including webhook and OAuth production URLs, index
-initialisation, backups and troubleshooting, are in
-[docs/deployment.md](docs/deployment.md).
+The frontend deploys to Vercel (`vercel.json`), the API and worker to Railway
+(with Redis as a Railway database), MongoDB to Atlas, and realtime to Convex.
+Full instructions, including the Vercel API proxy needed to keep session cookies
+first-party, webhook and OAuth production URLs, backups and troubleshooting, are
+in [docs/deployment.md](docs/deployment.md).
 
 ## Limitations (current build)
 
