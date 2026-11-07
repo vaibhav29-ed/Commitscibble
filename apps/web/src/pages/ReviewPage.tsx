@@ -26,6 +26,7 @@ import {
   CopyButton,
   Dialog,
   EmptyState,
+  PageHeader,
   Skeleton,
   StatusPill,
   Tabs,
@@ -129,23 +130,27 @@ export default function ReviewPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link
-            to="/dashboard/activity"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-3 w-3" /> Activity
-          </Link>
-          <h1 className="type-page-title mt-2">
+      <Link
+        to="/dashboard/activity"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-150 ease-smooth hover:text-foreground"
+      >
+        <ArrowLeft className="h-3 w-3" /> Activity
+      </Link>
+      <PageHeader
+        className="mt-2"
+        eyebrow="Review"
+        title={
+          <>
             {operationLabel(summary.operation)}
             {repositoryFullName ? (
               <span className="ml-2 font-mono text-sm font-normal text-muted-foreground">
                 {repositoryFullName}
               </span>
             ) : null}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          </>
+        }
+        meta={
+          <>
             <StatusPill value={summary.status} />
             {detail ? <StatusPill value={detail.status} /> : null}
             <Badge tone="outline">Run {summary.id.slice(-6)}</Badge>
@@ -155,38 +160,40 @@ export default function ReviewPage() {
                 {summary.provider}/{summary.model ?? "model"}
               </Badge>
             ) : null}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {canReview ? (
-            <>
-              <Button variant="outline" size="sm" onClick={() => setConfirmReject(true)}>
-                <XCircle className="h-3.5 w-3.5" /> Reject
-              </Button>
-              <Button
-                size="sm"
-                onClick={openApproveDialog}
-                loading={actions.approve.isPending}
-                style={{ viewTransitionName: confirmApprove ? "none" : "review-dialog" }}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" /> Approve &amp; apply
-              </Button>
-            </>
-          ) : null}
-          <Button
-            variant="outline"
-            size="sm"
-            loading={actions.retry.isPending}
-            onClick={() =>
-              actions.retry.mutate(summary.id, {
-                onSuccess: (result) => navigate(`/dashboard/reviews/${result.run.id}`),
-              })
-            }
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Regenerate
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          <>
+            {canReview ? (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setConfirmReject(true)}>
+                  <XCircle className="h-3.5 w-3.5" /> Reject
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={openApproveDialog}
+                  loading={actions.approve.isPending}
+                  style={{ viewTransitionName: confirmApprove ? "none" : "review-dialog" }}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Approve &amp; apply
+                </Button>
+              </>
+            ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              loading={actions.retry.isPending}
+              onClick={() =>
+                actions.retry.mutate(summary.id, {
+                  onSuccess: (result) => navigate(`/dashboard/reviews/${result.run.id}`),
+                })
+              }
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Regenerate
+            </Button>
+          </>
+        }
+      />
 
       {summary.status === "FAILED" ? (
         <Card className="border-danger/40">
@@ -239,7 +246,7 @@ export default function ReviewPage() {
                   tab={tab}
                   onTabChange={setTab}
                   onDownload={downloadMarkdown}
-                  className="rounded-[11px] border-0 shadow-none"
+                  className="rounded-xl border-0 shadow-none"
                   style={{ viewTransitionName: "proposal-panel" }}
                 />
               </ReviewPanelFrame>
@@ -344,7 +351,7 @@ export default function ReviewPage() {
           ) : null}
 
           {detail.status === "STALE" ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-warning">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-warning/30 bg-warning/5 p-3 text-sm text-warning">
               <AlertTriangle className="h-4 w-4" />
               <span>
                 This proposal is stale because the README changed after it was generated. Regenerate
@@ -421,7 +428,7 @@ export default function ReviewPage() {
           </>
         }
       >
-        <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm leading-relaxed text-muted-foreground">
+        <div className="space-y-2 rounded-md border border-border bg-muted p-3 text-sm leading-relaxed text-muted-foreground">
           <p>
             Target commit:{" "}
             <span className="font-mono text-foreground">{shortSha(detail?.baseCommitSha)}</span>
@@ -511,7 +518,9 @@ function ProposalViews({
 }
 
 function ReviewPanelFrame({ children }: { children: ReactNode }) {
-  return <div className="rounded-xl bg-brand-gradient p-px shadow-card">{children}</div>;
+  return (
+    <div className="rounded-xl border border-brand-500/30 bg-card shadow-card">{children}</div>
+  );
 }
 
 function ProposalCard({
@@ -575,13 +584,13 @@ function AppliedReceiptCard({
   return (
     <Card
       style={{ viewTransitionName: "proposal-panel" }}
-      className="overflow-hidden rounded-[11px] border-0 shadow-none"
+      className="overflow-hidden rounded-xl border-0 shadow-none"
     >
       <CardHeader className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
-              <CardTitle className="font-display text-2xl font-medium leading-tight tracking-[-0.025em]">
+              <CardTitle className="font-display text-[22px] font-bold leading-tight tracking-normal">
                 {applied ? "Documentation applied" : "Documentation approved"}
               </CardTitle>
               <StatusPill value={receipt.status} />
@@ -603,13 +612,13 @@ function AppliedReceiptCard({
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
           <div className="min-w-0">
-            <p className="text-2xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               {applied ? "Applied commit" : "Commit pending"}
             </p>
             {sha ? (
               <p
                 title={sha}
-                className="mt-1.5 truncate font-mono text-[1.75rem] leading-none tracking-[-0.03em] tabular-nums sm:text-[2rem]"
+                className="mt-1.5 truncate font-mono text-[1.75rem] leading-none tracking-normal tabular-nums sm:text-[2rem]"
               >
                 {shortSha(sha)}
               </p>
@@ -691,7 +700,7 @@ function LedgerFact({
 }) {
   return (
     <div className="min-w-0">
-      <dt className="text-2xs font-medium uppercase tracking-[0.1em] text-muted-foreground">{label}</dt>
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</dt>
       <dd className={cn("mt-1 truncate text-[13px] leading-tight", mono && "font-mono text-xs")}>
         {value}
       </dd>

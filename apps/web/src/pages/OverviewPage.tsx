@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  PageHeader,
   Skeleton,
   StatusPill,
 } from "../components/ui";
@@ -43,27 +44,26 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="type-page-title">Overview</h1>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Documentation state derived from your connected repositories and persisted activity.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge tone={realtime === "convex" ? "success" : "outline"}>
-            {realtime === "convex" ? "Live updates" : "Polling updates"}
-          </Badge>
-          <Link to="/dashboard/repositories">
-            <Button size="sm" variant="outline">
-              <Github className="h-3.5 w-3.5" /> Manage repositories
-            </Button>
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Workspace"
+        title="Overview"
+        description="Documentation state derived from your connected repositories and persisted activity."
+        actions={
+          <>
+            <Badge tone={realtime === "convex" ? "success" : "outline"}>
+              {realtime === "convex" ? "Live updates" : "Polling updates"}
+            </Badge>
+            <Link to="/dashboard/repositories">
+              <Button size="sm" variant="outline">
+                <Github className="h-3.5 w-3.5" /> Manage repositories
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
       {welcome ? (
-        <div className="flex items-start gap-3 rounded-lg border border-success/30 bg-success/5 p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-success/30 bg-success/5 p-4">
           <ShieldCheck className="mt-0.5 h-4 w-4 text-success" />
           <div>
             <p className="text-sm font-medium">GitHub connected</p>
@@ -76,7 +76,7 @@ export default function OverviewPage() {
       ) : null}
 
       {repositories.data?.githubError ? (
-        <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
+        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div>
             <p className="font-medium">GitHub repositories could not be refreshed</p>
@@ -159,12 +159,12 @@ export default function OverviewPage() {
           </CardHeader>
           <CardContent className="p-0">
             {repositories.isPending ? (
-              <div className="space-y-3 p-4">
+              <div className="space-y-3 p-5">
                 <Skeleton className="h-14 w-full" />
                 <Skeleton className="h-14 w-full" />
               </div>
             ) : connected.length === 0 ? (
-              <div className="p-4">
+              <div className="p-5">
                 <EmptyState
                   icon={<Github className="h-6 w-6" />}
                   title="No repositories connected"
@@ -179,7 +179,7 @@ export default function OverviewPage() {
             ) : (
               <ul className="divide-y divide-border">
                 {connected.slice(0, 6).map((repo) => (
-                  <li key={repo.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <li key={repo.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
                     <div className="min-w-0 flex-1">
                       <Link
                         to={`/dashboard/repositories/${repo.id}`}
@@ -269,7 +269,7 @@ export default function OverviewPage() {
           ) : (
             <ul className="divide-y divide-border">
               {pendingReviews.map((repo) => (
-                <li key={repo.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <li key={repo.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
                   <div>
                     <p className="text-sm font-medium">{repo.fullName}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -316,17 +316,19 @@ function MetricCard({
           : "text-muted-foreground";
   return (
     <Card>
-      <CardContent className="space-y-2">
-        <div className={`flex items-center gap-2 text-2xs font-medium uppercase tracking-wide ${toneClass}`}>
+      <CardContent className="space-y-2.5">
+        <div className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] ${toneClass}`}>
           {icon}
           {label}
         </div>
         {value === null ? (
-          <Skeleton className="h-7 w-12" />
+          <Skeleton className="h-8 w-12" />
         ) : (
-          <p className="text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
+          <p className="font-display text-[32px] font-extrabold leading-none tabular-nums tracking-normal">
+            {value}
+          </p>
         )}
-        <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
+        <p className="text-[13px] leading-[1.5] text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>
   );

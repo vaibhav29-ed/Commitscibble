@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   Dialog,
+  PageHeader,
   Skeleton,
 } from "../components/ui";
 import { formatDate } from "../lib/format";
@@ -51,18 +52,17 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="type-page-title">Settings</h1>
-        <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Account, integration, and deployment configuration that affects documentation behaviour.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Account"
+        title="Settings"
+        description="Account, integration, and deployment configuration that affects documentation behaviour."
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Github className="h-3.5 w-3.5" /> GitHub account
+              <Github className="h-3.5 w-3.5 text-brand-600 dark:text-brand-300" /> GitHub account
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -117,7 +117,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5" /> Deployment configuration
+              <ShieldCheck className="h-3.5 w-3.5 text-brand-600 dark:text-brand-300" /> Deployment configuration
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -244,9 +244,11 @@ export default function SettingsPage() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border bg-muted/30 p-2">
-      <p className="text-muted-foreground">{label}</p>
-      <p className="mt-0.5 break-all">{value}</p>
+    <div className="rounded-lg border border-border bg-muted/40 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">
+        {label}
+      </p>
+      <p className="mt-1 break-all">{value}</p>
     </div>
   );
 }

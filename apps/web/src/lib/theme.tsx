@@ -19,6 +19,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.style.colorScheme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    meta?.setAttribute("content", theme === "dark" ? "#111111" : "#ffffff");
     try {
       localStorage.setItem("cs-theme", theme);
     } catch {

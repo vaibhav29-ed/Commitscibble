@@ -1,7 +1,16 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useActivityEvent } from "../lib/query";
-import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton, StatusPill } from "../components/ui";
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  PageHeader,
+  Skeleton,
+  StatusPill,
+} from "../components/ui";
 import { formatDate } from "../lib/format";
 
 export default function ActivityDetailPage() {
@@ -10,18 +19,18 @@ export default function ActivityDetailPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <Link
-          to="/dashboard/activity"
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-3 w-3" /> Back to activity
-        </Link>
-        <h1 className="type-page-title mt-2">Activity event</h1>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Correlated audit record. Secrets and repository content are redacted before persistence.
-        </p>
-      </div>
+      <Link
+        to="/dashboard/activity"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-150 ease-smooth hover:text-foreground"
+      >
+        <ArrowLeft className="h-3 w-3" /> Back to activity
+      </Link>
+      <PageHeader
+        className="mt-2"
+        eyebrow="Audit trail"
+        title="Activity event"
+        description="Correlated audit record. Secrets and repository content are redacted before persistence."
+      />
 
       {event.isPending ? (
         <Skeleton className="h-64 w-full" />
@@ -107,9 +116,11 @@ export default function ActivityDetailPage() {
 
 function Field({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="rounded-md border border-border bg-muted/30 p-2">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className={`mt-0.5 break-all ${mono ? "font-mono" : ""}`}>{value}</dd>
+    <div className="rounded-lg border border-border bg-muted/40 p-3">
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">
+        {label}
+      </dt>
+      <dd className={`mt-1 break-all ${mono ? "font-mono" : ""}`}>{value}</dd>
     </div>
   );
 }

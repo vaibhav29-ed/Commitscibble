@@ -21,12 +21,13 @@ type ButtonSize = "sm" | "md" | "icon";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "border border-white/30 bg-[linear-gradient(135deg,#0f7d45_0%,#2fae6c_100%)] text-white shadow-glow hover:brightness-105 hover:-translate-y-px",
+    "border border-black/10 bg-primary text-primary-foreground shadow-dark-inset hover:brightness-110 active:brightness-95 dark:border-white/10",
   secondary: "border border-border bg-muted text-foreground hover:bg-muted/70",
   outline:
-    "border border-border bg-card text-foreground shadow-subtle hover:border-accent/40 hover:bg-muted/50",
-  ghost: "border border-transparent text-foreground hover:bg-muted/70",
-  danger: "border border-transparent bg-danger text-white hover:opacity-90",
+    "border border-border bg-card text-foreground shadow-reference-inset hover:border-foreground/20 hover:bg-muted/70",
+  ghost: "border border-transparent text-foreground hover:bg-muted",
+  danger:
+    "border border-black/10 bg-danger text-white hover:brightness-110 dark:border-white/10 dark:text-[#171717]",
 };
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
@@ -51,7 +52,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex select-none items-center rounded-full font-medium tracking-tight transition-all duration-150 ease-smooth active:scale-[0.985] motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex select-none items-center rounded-md font-medium tracking-normal transition-all duration-150 ease-smooth active:scale-[0.985] motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
         className,
@@ -75,26 +76,80 @@ export function Card({
   ...props
 }: { className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("surface", className)} {...props}>
+    <div className={cn("surface overflow-hidden", className)} {...props}>
       {children}
     </div>
   );
 }
 
+/**
+ * Card headers use a tinted band and a hairline rule, the same treatment the
+ * app shell gives its grouped sidebar sections and inset panels.
+ */
 export function CardHeader({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("flex flex-col gap-1 border-b border-border p-4", className)}>{children}</div>;
+  return (
+    <div className={cn("flex flex-col gap-1 border-b border-border bg-muted/40 p-5", className)}>
+      {children}
+    </div>
+  );
 }
 
 export function CardTitle({ className, children }: { className?: string; children: ReactNode }) {
-  return <h2 className={cn("text-base font-semibold tracking-tight", className)}>{children}</h2>;
+  return <h2 className={cn("text-[15px] font-semibold leading-snug tracking-normal", className)}>{children}</h2>;
 }
 
 export function CardDescription({ className, children }: { className?: string; children: ReactNode }) {
-  return <p className={cn("text-sm leading-relaxed text-muted-foreground", className)}>{children}</p>;
+  return <p className={cn("text-[13px] leading-[1.6] text-muted-foreground", className)}>{children}</p>;
 }
 
 export function CardContent({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("p-4", className)}>{children}</div>;
+  return <div className={cn("p-5", className)}>{children}</div>;
+}
+
+/**
+ * Shared dashboard page header: small-caps eyebrow, title, optional prose,
+ * optional meta row (badges), and an actions cluster aligned to the same
+ * 4/8/12px rhythm used by the shell.
+ */
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  meta,
+  actions,
+  className,
+}: {
+  eyebrow?: string;
+  title: ReactNode;
+  description?: string;
+  meta?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5",
+        className,
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        {eyebrow ? (
+          <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h1 className="type-page-title mt-1.5 text-balance">{title}</h1>
+        {description ? (
+          <p className="mt-1.5 max-w-2xl text-[15px] leading-[1.65] text-muted-foreground">
+            {description}
+          </p>
+        ) : null}
+        {meta ? <div className="mt-2 flex flex-wrap items-center gap-2">{meta}</div> : null}
+      </div>
+      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+    </div>
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -109,7 +164,7 @@ const BADGE_TONES: Record<BadgeTone, string> = {
   danger: "bg-danger/10 text-danger border-danger/30",
   warning: "bg-warning/10 text-warning border-warning/30",
   accent:
-    "bg-brand-50 text-primary border-brand-200 dark:bg-brand-500/10 dark:text-brand-300 dark:border-brand-500/30",
+    "bg-brand-50 text-brand-700 border-brand-200 dark:bg-brand-500/15 dark:text-brand-300 dark:border-brand-500/30",
   outline: "bg-transparent text-foreground border-border",
 };
 
@@ -125,7 +180,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-2xs font-medium uppercase tracking-[0.08em] transition-colors duration-200",
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-2xs font-medium uppercase tracking-[0.06em] transition-colors duration-200",
         BADGE_TONES[tone],
         className,
       )}
@@ -174,7 +229,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   return (
     <input
       className={cn(
-        "h-10 w-full rounded-lg border border-border bg-card px-3 text-sm placeholder:text-muted-foreground/70 transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15 disabled:opacity-60",
+        "h-10 w-full rounded-md border border-border bg-card px-3 text-sm placeholder:text-muted-foreground/70 transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15 disabled:opacity-60",
         className,
       )}
       {...props}
@@ -186,7 +241,7 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
   return (
     <textarea
       className={cn(
-        "w-full rounded-lg border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground/70 transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15",
+        "w-full rounded-md border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground/70 transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15",
         className,
       )}
       {...props}
@@ -198,7 +253,7 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
   return (
     <select
       className={cn(
-        "h-10 w-full rounded-lg border border-border bg-card px-3 text-sm transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15",
+        "h-10 w-full rounded-md border border-border bg-card px-3 text-sm transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15",
         className,
       )}
       {...props}
@@ -285,7 +340,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card/60 px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card/60 px-6 py-14 text-center">
       {icon ? <div className="text-muted-foreground">{icon}</div> : null}
       <div className="space-y-1">
         <p className="text-base font-medium">{title}</p>
@@ -298,7 +353,7 @@ export function EmptyState({
 
 export function InlineError({ message, requestId }: { message: string; requestId?: string }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+    <div className="flex items-start gap-2 rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         <p>{message}</p>
@@ -364,7 +419,7 @@ export function Dialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="motion-dialog-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="motion-dialog-backdrop absolute inset-0 bg-black/50"
         onClick={onClose}
         aria-hidden
       />
@@ -373,7 +428,7 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="motion-dialog-panel relative z-10 w-full max-w-lg rounded-xl border border-border bg-card p-5 shadow-overlay"
+        className="motion-dialog-panel relative z-10 w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-overlay"
         style={style}
       >
         <div className="flex items-start justify-between gap-4">
@@ -413,7 +468,7 @@ export function Tabs({
   className?: string;
 }) {
   return (
-    <div role="tablist" className={cn("flex flex-wrap gap-1 rounded-full bg-muted p-1", className)}>
+    <div role="tablist" className={cn("flex flex-wrap gap-1 rounded-md bg-muted p-1", className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -422,15 +477,15 @@ export function Tabs({
           aria-selected={active === tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors duration-150",
+            "rounded-sm px-3.5 py-1.5 text-xs font-medium transition-colors duration-150",
             active === tab.id
-              ? "bg-card text-foreground shadow-subtle"
+              ? "bg-card text-foreground shadow-reference-inset"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
           {tab.label}
           {tab.count !== undefined ? (
-            <span className="ml-1.5 rounded bg-muted px-1 text-2xs text-muted-foreground">
+            <span className="ml-1.5 rounded-full bg-muted px-1.5 text-2xs text-muted-foreground">
               {tab.count}
             </span>
           ) : null}

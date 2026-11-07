@@ -3,43 +3,47 @@
 @tailwind utilities;
 
 /*
- * Design tokens mapped to the Taste Skill deal for CommitScibble:
- * tasteskill 2.5, palette rose-grey-green, type Mona Sans + Geist Mono,
- * radius "soft". Light is the primary surface; dark keeps the same ink/accent
- * inversion.
+ * Design tokens measured from the SuperCommands reference:
+ * Archivo type, white/grey/dark neutral surfaces, indigo #6366F1 accent,
+ * radii 4 / 6 / 8 / 12 / 44 / 999 and the reference card shadow.
+ * Light is the primary surface; dark mirrors the same hierarchy.
  */
 :root {
-  --bg: 235 229 227;
-  --fg: 43 38 34;
-  --card: 225 218 215;
-  --muted: 237 230 220;
-  --muted-fg: 101 92 88;
-  --border: 43 38 34;
-  --primary: 15 125 69;
+  --bg: 248 248 249;
+  --fg: 23 23 23;
+  --card: 255 255 255;
+  --muted: 241 242 244;
+  --muted-fg: 93 97 103;
+  --border: 237 237 240;
+  --primary: 79 70 229;
   --primary-fg: 255 255 255;
-  --accent: 15 125 69;
+  --accent: 79 70 229;
   --accent-fg: 255 255 255;
-  --danger: 186 57 43;
-  --success: 15 125 69;
-  --warning: 168 122 42;
-  --code-bg: 243 236 228;
+  --inverse: 17 17 17;
+  --inverse-fg: 255 255 255;
+  --danger: 185 28 28;
+  --success: 22 101 52;
+  --warning: 133 77 14;
+  --code-bg: 246 246 244;
 }
 
 .dark {
-  --bg: 43 38 34;
-  --fg: 235 229 227;
-  --card: 54 49 45;
-  --muted: 66 59 55;
-  --muted-fg: 162 156 153;
-  --border: 235 229 227;
-  --primary: 235 229 227;
-  --primary-fg: 43 38 34;
-  --accent: 235 229 227;
-  --accent-fg: 43 38 34;
-  --danger: 217 90 79;
-  --success: 82 199 145;
-  --warning: 222 186 92;
-  --code-bg: 30 27 25;
+  --bg: 17 17 17;
+  --fg: 236 236 238;
+  --card: 26 26 29;
+  --muted: 41 45 52;
+  --muted-fg: 160 163 170;
+  --border: 45 48 54;
+  --primary: 79 70 229;
+  --primary-fg: 255 255 255;
+  --accent: 165 180 252;
+  --accent-fg: 17 17 17;
+  --inverse: 17 17 17;
+  --inverse-fg: 255 255 255;
+  --danger: 248 113 113;
+  --success: 74 222 128;
+  --warning: 251 191 36;
+  --code-bg: 26 26 29;
 }
 
 @layer base {
@@ -54,10 +58,9 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
     font-weight: 400;
-    letter-spacing: -0.005em;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    letter-spacing: normal;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -75,9 +78,9 @@
   }
 
   h1 {
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-    font-weight: 500;
-    letter-spacing: -0.03em;
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: normal;
   }
 
   strong,
@@ -100,58 +103,88 @@
     @apply rounded-xl border border-border bg-card shadow-subtle;
   }
 
-  .surface-muted {
-    @apply rounded-xl border border-border bg-muted/60;
-  }
-
   .font-display {
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: -0.03em;
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: normal;
   }
 
-  /* Large marketing headline from the Taste Skill deal: headlines 400, 500 on a
-     tech page; hero 64px / line-height 1.02, display 500 with tight tracking. */
+  /* Reference hero: Archivo 88px / 700 / 1.08, normal tracking. */
   .type-display {
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-    font-weight: 500;
-    font-size: clamp(2.75rem, 6vw, 4.5rem);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(3.25rem, 6.2vw, 5.5rem);
+    line-height: 1.08;
+    letter-spacing: normal;
   }
 
-  /* App page title: one step below the marketing display voice. */
+  /* Reference section heading: Archivo 36px / 800 / 1.11. */
+  .type-title-lg {
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.75rem, 2.8vw, 2.25rem);
+    font-weight: 800;
+    line-height: 1.11;
+    letter-spacing: normal;
+  }
+
+  .type-title-md {
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.5rem, 2.3vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: normal;
+  }
+
+  /* App page title: one step below the marketing section heading. */
   .type-page-title {
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-    font-size: 1.5rem;
-    font-weight: 500;
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.5rem, 2vw, 1.75rem);
+    font-weight: 700;
     line-height: 1.2;
-    letter-spacing: -0.025em;
+    letter-spacing: normal;
     color: rgb(var(--fg));
   }
 
-  /* Marketing body copy from the deal: text 400 / body 400, line height 1.625. */
-  .type-body {
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-    font-size: 0.875rem;
-    font-weight: 400;
-    line-height: 1.625;
-    letter-spacing: -0.0125em;
-  }
-
-  /* Section heading one step below the marketing display voice. */
-  .type-title-md {
-    font-family: "Mona Sans", ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(1.5rem, 2.2vw, 2rem);
+  /* Reference subheading: Archivo 22px / 500 / 1.4. */
+  .type-subheading {
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.25rem, 1.8vw, 1.375rem);
     font-weight: 500;
-    line-height: 1.12;
-    letter-spacing: -0.032em;
+    line-height: 1.4;
+    letter-spacing: normal;
   }
 
-  .text-gradient-brand {
-    background-image: linear-gradient(100deg, #0f7d45 0%, #159a60 55%, #4cb87e 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  /* Reference body copy: Archivo 17px / 400 / 1.75. */
+  .type-body {
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1.75;
+    letter-spacing: normal;
+  }
+
+  /* Reference label: Archivo 15px / 500 / 1.3. */
+  .type-label {
+    font-family: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: normal;
+  }
+
+  /* Reference small text: 13px / 400 / 1.5. */
+  .type-small {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: normal;
+  }
+
+  .interactive-card {
+    @apply transition-all duration-150 ease-smooth;
+  }
+
+  .interactive-card:hover {
+    @apply -translate-y-0.5 shadow-card;
   }
 
   .prose-readme {
@@ -176,16 +209,6 @@
     text-wrap: pretty;
   }
 
-  .bg-dot-grid {
-    background-image: radial-gradient(rgb(var(--border)) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  .glass {
-    background: rgb(var(--card) / 0.72);
-    backdrop-filter: blur(14px) saturate(140%);
-  }
-
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -208,100 +231,6 @@ samp {
 /* -------------------------------------------------------------------------- */
 /* Motion                                                                     */
 /* -------------------------------------------------------------------------- */
-
-@keyframes motion-scan {
-  0% {
-    transform: translateY(-120%);
-    opacity: 0;
-  }
-  16% {
-    opacity: 1;
-  }
-  78% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateY(260%);
-    opacity: 0;
-  }
-}
-
-@keyframes motion-diff-add {
-  0% {
-    background-color: transparent;
-    box-shadow: inset 2px 0 0 transparent;
-  }
-  55% {
-    background-color: rgb(var(--success) / 0.18);
-    box-shadow: inset 2px 0 0 rgb(var(--success) / 0.95);
-  }
-  100% {
-    background-color: rgb(var(--success) / 0.1);
-    box-shadow: inset 2px 0 0 transparent;
-  }
-}
-
-@keyframes motion-diff-remove {
-  0% {
-    background-color: transparent;
-    box-shadow: inset 2px 0 0 transparent;
-  }
-  55% {
-    background-color: rgb(var(--danger) / 0.18);
-    box-shadow: inset 2px 0 0 rgb(var(--danger) / 0.95);
-  }
-  100% {
-    background-color: rgb(var(--danger) / 0.1);
-    box-shadow: inset 2px 0 0 transparent;
-  }
-}
-
-@keyframes motion-section-flag {
-  0% {
-    background-color: transparent;
-    box-shadow: inset 2px 0 0 transparent;
-  }
-  38% {
-    background-color: rgb(var(--accent) / 0.08);
-    box-shadow: inset 2px 0 0 rgb(var(--accent) / 0.85);
-  }
-  100% {
-    background-color: transparent;
-    box-shadow: inset 2px 0 0 transparent;
-  }
-}
-
-@keyframes motion-badge {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgb(var(--warning) / 0);
-  }
-  40% {
-    box-shadow: 0 0 0 4px rgb(var(--warning) / 0.14);
-  }
-}
-
-@keyframes motion-verified {
-  0% {
-    box-shadow: 0 0 0 0 rgb(var(--success) / 0.45);
-  }
-  60% {
-    box-shadow: 0 0 0 6px rgb(var(--success) / 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgb(var(--success) / 0);
-  }
-}
-
-@keyframes motion-stamp {
-  0%,
-  100% {
-    border-top-color: rgb(var(--border));
-  }
-  45% {
-    border-top-color: rgb(var(--success) / 0.55);
-  }
-}
 
 @keyframes motion-event-in {
   0% {
@@ -356,105 +285,6 @@ samp {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes motion-greeting-in {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) rotate(0deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg);
-  }
-}
-
-/* Taste Skill hero collage: the small result card shows its finished state,
-   holds, then its steps arrive 0.7s apart, holds again, and loops. */
-@keyframes motion-loop-card {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  12%,
-  78% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  88%,
-  100% {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-}
-
-.motion-loop-card {
-  animation: motion-loop-card 3.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-@keyframes motion-sun-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(30deg);
-  }
-}
-
-@keyframes motion-headline-in {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.motion-scan {
-  pointer-events: none;
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  z-index: 0;
-  height: 46%;
-  opacity: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgb(32 155 255 / 0.05) 55%,
-    rgb(32 155 255 / 0.16) 94%,
-    rgb(32 155 255 / 0.38) 100%
-  );
-}
-
-.motion-run .motion-scan {
-  animation: motion-scan 640ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
-}
-
-.motion-run .motion-diff-line[data-tone="add"] {
-  animation: motion-diff-add 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.motion-run .motion-diff-line[data-tone="remove"] {
-  animation: motion-diff-remove 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.motion-run .motion-section-flag {
-  animation: motion-section-flag 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.motion-run .motion-badge {
-  animation: motion-badge 420ms cubic-bezier(0.16, 1, 0.3, 1) 380ms both;
-}
-
-.motion-run .motion-verified {
-  animation: motion-verified 420ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both;
-}
-
-.motion-run .motion-stamp {
-  animation: motion-stamp 420ms cubic-bezier(0.16, 1, 0.3, 1) 500ms both;
 }
 
 .motion-event-in {
@@ -516,10 +346,6 @@ samp {
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .motion-scan {
-    display: none;
   }
 
   ::view-transition-group(review-dialog),

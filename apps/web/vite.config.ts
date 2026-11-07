@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: {
     alias: [{ find: /^@commitscibble\/shared$/, replacement: sharedSource }],
   },
-  server: { port: 5173, strictPort: true },
+  server: { port: 5174, strictPort: true },
   preview: { port: 4173 },
   build: {
     sourcemap: false,

@@ -78,7 +78,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={item.id}
             data-leaving={leavingIds.has(item.id) ? "true" : undefined}
             className={cn(
-              "motion-toast pointer-events-auto flex items-start gap-3 rounded-lg border bg-card p-3 shadow-lg",
+              "motion-toast pointer-events-auto flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 shadow-overlay",
               item.variant === "error" && "border-danger/40",
               item.variant === "success" && "border-success/40",
             )}

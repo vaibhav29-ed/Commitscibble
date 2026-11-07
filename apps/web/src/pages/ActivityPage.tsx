@@ -10,6 +10,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  PageHeader,
   Select,
   Skeleton,
 } from "../components/ui";
@@ -50,27 +51,26 @@ export default function ActivityPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="type-page-title">Activity</h1>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Authoritative audit events persisted in MongoDB, correlated by log and job id.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge tone={realtime === "convex" ? "success" : "outline"}>
-            {realtime === "convex" ? "Live subscription" : "Polling every 5s"}
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => activity.refetch()}
-            loading={activity.isFetching}
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Refresh
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Audit trail"
+        title="Activity"
+        description="Authoritative audit events persisted in MongoDB, correlated by log and job id."
+        actions={
+          <>
+            <Badge tone={realtime === "convex" ? "success" : "outline"}>
+              {realtime === "convex" ? "Live subscription" : "Polling every 5s"}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => activity.refetch()}
+              loading={activity.isFetching}
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Refresh
+            </Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -79,8 +79,8 @@ export default function ActivityPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-3">
-          <label className="space-y-1 text-xs">
-            <span className="font-medium text-muted-foreground">Repository</span>
+          <label className="space-y-1.5 text-[13px]">
+            <span className="font-medium text-foreground">Repository</span>
             <Select value={repositoryId} onChange={(event) => updateParam("repositoryId", event.target.value)}>
               <option value="">All repositories</option>
               {(repositories.data?.connected ?? []).map((repo) => (
@@ -90,8 +90,8 @@ export default function ActivityPage() {
               ))}
             </Select>
           </label>
-          <label className="space-y-1 text-xs">
-            <span className="font-medium text-muted-foreground">Status</span>
+          <label className="space-y-1.5 text-[13px]">
+            <span className="font-medium text-foreground">Status</span>
             <Select value={status} onChange={(event) => updateParam("status", event.target.value)}>
               {STATUSES.map((value) => (
                 <option key={value} value={value}>
@@ -100,8 +100,8 @@ export default function ActivityPage() {
               ))}
             </Select>
           </label>
-          <label className="space-y-1 text-xs">
-            <span className="font-medium text-muted-foreground">Operation</span>
+          <label className="space-y-1.5 text-[13px]">
+            <span className="font-medium text-foreground">Operation</span>
             <Select value={operation} onChange={(event) => updateParam("operation", event.target.value)}>
               <option value="">All operations</option>
               {OPERATION_TYPES.filter((value) => value !== "PROPOSAL_APPLY").map((value) => (

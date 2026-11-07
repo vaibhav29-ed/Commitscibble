@@ -126,7 +126,7 @@ export function ActivityTimeline({
 export function DiffViewer({ diff, className }: { diff: string; className?: string }) {
   if (!diff.trim()) {
     return (
-      <div className="rounded-md border border-border bg-muted/40 p-6 text-center text-sm leading-relaxed text-muted-foreground">
+      <div className="rounded-xl border border-border bg-muted p-6 text-center text-sm leading-relaxed text-muted-foreground">
         The proposed documentation is identical to the current README.
       </div>
     );
@@ -134,7 +134,7 @@ export function DiffViewer({ diff, className }: { diff: string; className?: stri
 
   const lines = diff.replace(/\r\n/g, "\n").split("\n");
   return (
-    <div className={cn("overflow-hidden rounded-md border border-border", className)}>
+    <div className={cn("overflow-hidden rounded-xl border border-border", className)}>
       <div className="max-h-[600px] overflow-auto bg-code-bg">
         <pre className="min-w-full font-mono text-xs leading-5">
           {lines.map((line, index) => {
@@ -166,7 +166,7 @@ export function DiffViewer({ diff, className }: { diff: string; className?: stri
 export function RunRow({ run, repositoryId }: { run: RunSummary; repositoryId?: string }) {
   const reviewLink = `/dashboard/reviews/${run.id}`;
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 last:border-b-0">
+    <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-3.5 last:border-b-0">
       <StatusPill value={run.status} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{operationLabel(run.operation)}</p>

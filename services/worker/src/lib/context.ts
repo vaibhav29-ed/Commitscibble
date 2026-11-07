@@ -17,6 +17,7 @@ import {
 } from "@commitscibble/persistence";
 import type { Env } from "@commitscibble/config";
 import { decryptGitHubToken } from "./crypto.js";
+import { describeError } from "./errors.js";
 import type { Logger } from "./logger.js";
 import { notifyRunFailed } from "./notifications.js";
 
@@ -274,11 +275,11 @@ export async function failRun(
     // provider error code and the original message plus stack. Without this the
     // log only showed the generic AppError message.
     deps.logger.error("Documentation run failed", {
+      ...diagnostics,
       runId: String(run._id),
       repositoryId: String(run.repositoryId),
       code: appError.code,
       errorMessage: message,
-      ...diagnostics,
       stack: diagnostics.stack,
       causeStack: diagnostics.causeStack,
     });

@@ -18,6 +18,7 @@ import {
   EmptyState,
   Input,
   Label,
+  PageHeader,
   Select,
   Skeleton,
   StatusPill,
@@ -105,16 +106,18 @@ export default function RepositoryDetailPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <Link
-            to="/dashboard/repositories"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-3 w-3" /> Repositories
-          </Link>
-          <h1 className="type-page-title mt-2 truncate">{repository.fullName}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <Link
+        to="/dashboard/repositories"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-150 ease-smooth hover:text-foreground"
+      >
+        <ArrowLeft className="h-3 w-3" /> Repositories
+      </Link>
+      <PageHeader
+        className="mt-2"
+        eyebrow="Repository"
+        title={repository.fullName}
+        meta={
+          <>
             <Badge tone="outline">
               <GitBranch className="h-3 w-3" /> {repository.defaultBranch}
             </Badge>
@@ -125,34 +128,36 @@ export default function RepositoryDetailPage() {
             <StatusPill value={repository.trackingStatus} />
             <StatusPill value={repository.documentationStatus} />
             <StatusPill value={repository.settings.updateMode} />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <RepoActions repository={repository} showReview />
-          <Button
-            variant="outline"
-            size="sm"
-            loading={tracking.isPending}
-            onClick={() =>
-              tracking.mutate(repository.trackingStatus === "PAUSED" ? "CONNECTED" : "PAUSED")
-            }
-          >
-            {repository.trackingStatus === "PAUSED" ? (
-              <>
-                <Play className="h-3.5 w-3.5" /> Resume tracking
-              </>
-            ) : (
-              <>
-                <Pause className="h-3.5 w-3.5" /> Pause tracking
-              </>
-            )}
-          </Button>
-          <DisconnectRepository repository={repository} redirectTo="/dashboard/repositories" />
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          <>
+            <RepoActions repository={repository} showReview />
+            <Button
+              variant="outline"
+              size="sm"
+              loading={tracking.isPending}
+              onClick={() =>
+                tracking.mutate(repository.trackingStatus === "PAUSED" ? "CONNECTED" : "PAUSED")
+              }
+            >
+              {repository.trackingStatus === "PAUSED" ? (
+                <>
+                  <Play className="h-3.5 w-3.5" /> Resume tracking
+                </>
+              ) : (
+                <>
+                  <Pause className="h-3.5 w-3.5" /> Pause tracking
+                </>
+              )}
+            </Button>
+            <DisconnectRepository repository={repository} redirectTo="/dashboard/repositories" />
+          </>
+        }
+      />
 
       {activeRun ? (
-        <div className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3 text-sm">
+        <div className="flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 p-3 text-sm">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
           <p>
             <span className="font-medium">{operationLabel(activeRun.operation)}</span> is{" "}
@@ -195,7 +200,7 @@ export default function RepositoryDetailPage() {
               <p className="flex items-center gap-2 text-sm font-medium">
                 <ShieldCheck className="h-4 w-4 text-warning" /> Proposal awaiting review
               </p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-1 text-[13px] leading-[1.6] text-muted-foreground">
                 {detail.data.pendingProposal.summary} · +{detail.data.pendingProposal.additions} / −
                 {detail.data.pendingProposal.deletions} lines · created{" "}
                 {relativeTime(detail.data.pendingProposal.createdAt)}
@@ -302,7 +307,7 @@ export default function RepositoryDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+                <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-muted/50 p-3">
                   <div>
                     <p className="text-sm font-medium">Automation enabled</p>
                     <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
@@ -338,7 +343,7 @@ export default function RepositoryDetailPage() {
                     {SECTION_KEYS.map((key) => (
                       <label
                         key={key}
-                        className="flex items-center gap-2 rounded border border-border px-2 py-1 text-xs"
+                        className="flex items-center gap-2 rounded-sm border border-border px-2.5 py-1.5 text-[13px]"
                       >
                         <input
                           type="checkbox"
@@ -383,7 +388,7 @@ export default function RepositoryDetailPage() {
                 <RunRow key={run.id} run={run} repositoryId={repository.id} />
               ))
             ) : (
-              <div className="p-4">
+              <div className="p-5">
                 <EmptyState
                   icon={<GitBranch className="h-6 w-6" />}
                   title="No runs yet"
@@ -412,9 +417,11 @@ export default function RepositoryDetailPage() {
 
 function InfoTile({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="rounded-md border border-border bg-muted/30 p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`mt-1 break-all text-sm ${mono ? "font-mono" : ""}`}>{value}</p>
+    <div className="rounded-lg border border-border bg-muted/40 p-3.5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">
+        {label}
+      </p>
+      <p className={`mt-1 break-all text-sm ${mono ? "font-mono text-[13px]" : ""}`}>{value}</p>
     </div>
   );
 }

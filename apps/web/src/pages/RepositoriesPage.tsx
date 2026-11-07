@@ -11,6 +11,7 @@ import {
   CardTitle,
   EmptyState,
   Input,
+  PageHeader,
   Skeleton,
   StatusPill,
 } from "../components/ui";
@@ -46,27 +47,26 @@ export default function RepositoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="type-page-title">Repositories</h1>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Connect repositories, run documentation jobs, and control per-repository automation.
-          </p>
-        </div>
-        <div className="relative w-full max-w-xs">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter repositories"
-            className="pl-8"
-            aria-label="Filter repositories"
-          />
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Workspace"
+        title="Repositories"
+        description="Connect repositories, run documentation jobs, and control per-repository automation."
+        actions={
+          <div className="relative w-full max-w-xs">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              placeholder="Filter repositories"
+              className="pl-8"
+              aria-label="Filter repositories"
+            />
+          </div>
+        }
+      />
 
       {repositories.data?.githubError ? (
-        <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
+        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div>
             <p className="font-medium">Your GitHub repository list is unavailable</p>
@@ -80,7 +80,7 @@ export default function RepositoriesPage() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Connected</h2>
+          <h2 className="text-[15px] font-semibold">Connected</h2>
           <Badge tone="outline">{connected.length}</Badge>
         </div>
 
@@ -108,7 +108,7 @@ export default function RepositoriesPage() {
                     <div className="min-w-0">
                       <Link
                         to={`/dashboard/repositories/${repo.id}`}
-                        className="truncate text-base font-semibold hover:underline"
+                        className="truncate text-[17px] font-semibold hover:underline"
                       >
                         {repo.fullName}
                       </Link>
@@ -126,16 +126,16 @@ export default function RepositoriesPage() {
                   </div>
 
                   <dl className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-md border border-border bg-muted/30 p-2">
-                      <dt className="text-muted-foreground">Last processed commit</dt>
+                    <div className="rounded-lg border border-border bg-muted/40 p-3">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">Last processed commit</dt>
                       <dd className="mt-0.5 font-mono">{shortSha(repo.lastProcessedCommitSha)}</dd>
                     </div>
-                    <div className="rounded-md border border-border bg-muted/30 p-2">
-                      <dt className="text-muted-foreground">Last successful update</dt>
+                    <div className="rounded-lg border border-border bg-muted/40 p-3">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">Last successful update</dt>
                       <dd className="mt-0.5">{repo.lastSuccessfulRunAt ? repo.lastSuccessfulRunAt.slice(0, 10) : "Never"}</dd>
                     </div>
-                    <div className="col-span-2 rounded-md border border-border bg-muted/30 p-2">
-                      <dt className="text-muted-foreground">README</dt>
+                    <div className="col-span-2 rounded-lg border border-border bg-muted/40 p-3">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">README</dt>
                       <dd className="mt-0.5 flex items-center justify-between gap-2">
                         <span className="truncate font-mono">{repo.settings.readmePath}</span>
                         <a
@@ -172,8 +172,8 @@ export default function RepositoriesPage() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-semibold">Available on GitHub</h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <h2 className="text-[15px] font-semibold">Available on GitHub</h2>
+            <p className="text-[15px] leading-[1.65] text-muted-foreground">
               Repositories returned by your current authorization, verified against GitHub.
             </p>
           </div>
@@ -232,7 +232,7 @@ function AvailableRow({
 }) {
   return (
     <li
-      className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5"
+      className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
       data-testid="available-repository"
     >
       <div className="min-w-0">

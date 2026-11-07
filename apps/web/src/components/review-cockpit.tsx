@@ -429,14 +429,14 @@ export function ReviewCockpit({
       <aside className="min-w-0 lg:sticky lg:top-4">
         <div className="min-w-0">
           <div className="flex items-baseline justify-between gap-2 border-b border-border pb-2">
-            <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Diff map
             </p>
             <p className="font-mono text-xs tabular-nums">
               <span className="text-accent">
                 {String(Math.min(active + 1, groups.length)).padStart(2, "0")}
               </span>
-              <span className="text-muted-foreground/60"> / {String(groups.length).padStart(2, "0")}</span>
+              <span className="text-muted-foreground"> / {String(groups.length).padStart(2, "0")}</span>
             </p>
           </div>
           <div className="mb-2 mt-2 h-0.5 overflow-hidden rounded-full bg-border">
@@ -460,7 +460,7 @@ export function ReviewCockpit({
                   aria-label={`${group.label}, ${group.additions} additions, ${group.deletions} deletions`}
                   className={cn(
                     "group flex h-11 min-w-[9.5rem] shrink-0 items-center gap-2 rounded-md px-1.5 text-left transition-colors duration-150 lg:h-12 lg:w-full lg:min-w-0 lg:rounded-none lg:px-2",
-                    isActive ? "bg-muted/60" : "hover:bg-muted/30",
+                    isActive ? "bg-muted" : "hover:bg-muted/60",
                   )}
                 >
                   <span
@@ -487,7 +487,7 @@ export function ReviewCockpit({
                   <span
                     className={cn(
                       "shrink-0 font-mono text-2xs tabular-nums",
-                      isActive ? "text-foreground/75" : "text-muted-foreground/70",
+                      isActive ? "text-foreground/75" : "text-muted-foreground",
                     )}
                   >
                     <span className="text-success">+{group.additions}</span>{" "}
@@ -505,8 +505,8 @@ export function ReviewCockpit({
         </div>
       </aside>
 
-      <div className="min-w-0 overflow-hidden rounded-lg border border-border bg-card">
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-2">
+      <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-muted px-4 py-2.5">
           <span className="truncate font-mono text-2xs text-muted-foreground">
             {parsed.filePath ?? "README.md"}
           </span>
@@ -553,7 +553,7 @@ export function ReviewCockpit({
                       {group.label}
                     </h3>
                     {group.firstLine !== null ? (
-                      <span className="hidden shrink-0 font-mono text-2xs tabular-nums text-muted-foreground/70 sm:inline">
+                      <span className="hidden shrink-0 font-mono text-2xs tabular-nums text-muted-foreground sm:inline">
                         L{group.firstLine}–{group.lastLine}
                       </span>
                     ) : null}
@@ -575,10 +575,10 @@ export function ReviewCockpit({
                         line.kind === "context" && "text-foreground/90",
                       )}
                     >
-                      <span className="w-10 shrink-0 select-none border-r border-border/60 px-2 text-right text-2xs tabular-nums text-muted-foreground/70">
+                      <span className="w-10 shrink-0 select-none border-r border-border/60 px-2 text-right text-2xs tabular-nums text-muted-foreground">
                         {line.oldLine ?? ""}
                       </span>
-                      <span className="w-10 shrink-0 select-none border-r border-border/60 px-2 text-right text-2xs tabular-nums text-muted-foreground/70">
+                      <span className="w-10 shrink-0 select-none border-r border-border/60 px-2 text-right text-2xs tabular-nums text-muted-foreground">
                         {line.newLine ?? ""}
                       </span>
                       <span
@@ -587,7 +587,7 @@ export function ReviewCockpit({
                           "w-5 shrink-0 select-none text-center",
                           line.kind === "add" && "text-success",
                           line.kind === "remove" && "text-danger",
-                          line.kind === "context" && "text-muted-foreground/60",
+                          line.kind === "context" && "text-muted-foreground",
                         )}
                       >
                         {line.kind === "add" ? "+" : line.kind === "remove" ? "−" : " "}

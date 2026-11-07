@@ -97,7 +97,7 @@ export function RepoActions({
           </>
         }
       >
-        <div className="rounded-md border border-border bg-muted/40 p-3 text-sm leading-relaxed">
+        <div className="rounded-md border border-border bg-muted p-3 text-sm leading-relaxed">
           <p className="font-medium">{repository.fullName}</p>
           <p className="mt-1 text-muted-foreground">
             Update mode: <span className="text-foreground">{repository.settings.updateMode}</span>
@@ -159,7 +159,7 @@ export function DisconnectRepository({
           </>
         }
       >
-        <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+        <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-muted/50 p-3">
           <div>
             <Label htmlFor="revoke">Revoke GitHub authorization</Label>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
