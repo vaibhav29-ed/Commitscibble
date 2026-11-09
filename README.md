@@ -1,272 +1,343 @@
-# CommitScibble
-<<<<<<< HEAD
+# CommitScribble
 
-<p align="center">
-  <img src="apps/web/public/brand/logo.png" alt="CommitScibble logo" width="140" />
-</p>
+### Your AI-Powered GitHub Workflow Assistant
 
-**Your code evolves. Your docs follow.**
+**Automate repository documentation. Understand your codebase. Spend more time building.**
 
-CommitScibble is a GitHub documentation automation service. It reads a repository's
-real files, drafts a README that is grounded in those files, then keeps that README
-in step with future commits by proposing targeted section updates instead of
-rewriting the whole document.
+CommitScribble is an AI-powered developer productivity platform designed to simplify GitHub repository management. It connects with your repositories, analyzes project structures, generates meaningful documentation, and helps automate repetitive development workflows — all from one centralized workspace.
 
-It is a working application: GitHub OAuth, repository discovery, background
-generation, incremental patching, cleanup, review/approval, live activity and an
-audit trail are implemented. Where an external credential is missing the affected
-integration is reported as unconfigured rather than faked.
+[**Live Demo**](https://commitscribble.vercel.app) · **Documentation** · **Report a Bug** · **Request a Feature**
 
-## What it does
+---
 
-- **Connect GitHub** with OAuth and account-scoped sessions. Tokens are encrypted
-  with AES-256-GCM and never leave the server.
-- **Generate a README** from a filtered repository inventory: manifests, source
-  files, CI, environment examples, tests and existing docs. The generated
-  instructions are validated against the files that were actually read, and the
-  evidence each section cites is checked against the inventory; an invented path
-  triggers one repair pass before a proposal is created.
-- **Update incrementally** on push. Changed paths are classified by documentation
-  impact, only affected README sections are regenerated, and unrelated sections are
-  preserved byte-for-byte.
-- **Clean up** an existing README: duplicate headings, contradictory sections,
-  stale commands and filler are proposed as a reviewable diff.
-- **Review before applying** (default) or apply automatically. Automatic apply is
-  withheld when the change was classified as needing review or the model reported
-  low confidence, and the proposal is queued instead. Proposals store the base
-  README hash and base commit; if the branch moved, the apply step refuses and
-  marks the proposal stale instead of overwriting newer work.
-- **Watch it happen live** with a Convex-backed activity stream. MongoDB is the
-  authoritative record; a transactional outbox in the audit collection makes
-  realtime delivery retryable, and the UI falls back to persisted history.
-- **Inspect everything** through per-repository run history, correlated audit logs,
-  developer-readable error details and safe retries.
+## Project Status
+
+![Status](https://img.shields.io/badge/Status-Active_Development-brightgreen?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.1.0-blue?style=flat-square)
+![License](https://img.shields.io/badge/License-To_Be_Defined-lightgrey?style=flat-square)
+
+![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)
+
+---
+
+## Overview
+
+Managing a software repository involves more than writing code.
+
+Developers frequently spend time understanding unfamiliar codebases, maintaining README files, updating technical documentation, and handling repetitive repository management tasks.
+
+CommitScribble aims to eliminate this friction through AI-powered repository intelligence and automation.
+
+Connect your GitHub account, select a repository, and let CommitScribble help you manage the documentation and workflows surrounding your code.
+
+## Key Features
+
+### 1. GitHub Repository Integration
+- Connect your GitHub account.
+- Access and manage connected repositories.
+- Retrieve repository information and project structure.
+- Work with repository data through a centralized interface.
+
+### 2. AI-Powered Repository Analysis
+- Analyze repository structures and source files.
+- Understand project architecture and dependencies.
+- Generate contextual insights about codebases.
+- Reduce the time required to understand unfamiliar projects.
+
+### 3. Automated README Generation
+- Generate structured README files.
+- Create project descriptions and setup instructions.
+- Organize technical information into readable documentation.
+- Improve repository presentation and consistency.
+
+### 4. Intelligent Documentation Management
+- Generate documentation from repository context.
+- Identify documentation gaps.
+- Create documentation updates and patches.
+- Simplify repetitive documentation maintenance.
+
+### 5. Developer Productivity Dashboard
+- Centralized repository management.
+- Access repository-related activities.
+- Organize AI-powered workflows.
+- Monitor documentation and automation operations.
+
+### 6. Background Processing
+- Asynchronous task execution.
+- Background workers for resource-intensive operations.
+- Redis-backed job processing infrastructure.
+- Improved handling of long-running workflows.
+
+---
+
+## How It Works
+
+```mermaid
+flowchart TD
+    A[Developer] --> B[CommitScribble Dashboard]
+    B --> C[GitHub OAuth]
+    C --> D[Repository Selection]
+    D --> E[Repository Analysis Engine]
+    E --> F[AI Processing Layer]
+    F --> G[Documentation Generation]
+    F --> H[Documentation Patches]
+    F --> I[Repository Insights]
+    G --> J[Developer Workspace]
+    H --> J
+    I --> J
+```
+
+**Workflow:**
+
+1. Authenticate using your GitHub account.
+2. Connect and select a repository.
+3. CommitScribble retrieves relevant repository information.
+4. The analysis engine processes the repository context.
+5. AI-powered workflows generate documentation and insights.
+6. Review and use the generated results.
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React, TypeScript, Tailwind CSS |
+| Build Tool | Vite |
+| State Management | Zustand |
+| Backend | Node.js, Express |
+| Database | MongoDB |
+| Background Jobs | Redis, Worker Services |
+| AI Integration | Gemini API |
+| Version Control | Git, GitHub API |
+| Deployment | Vercel, Backend Hosting |
+
+---
 
 ## Architecture
 
+CommitScribble follows a modular architecture designed to separate the user interface, backend services, data persistence, and asynchronous processing.
+
+```text
+CommitScribble/
+│
+├── apps/
+│   └── web/                 # Frontend application
+│
+├── services/
+│   ├── api/                 # Backend API
+│   └── worker/              # Background processing
+│
+├── packages/
+│   ├── documentation-engine/
+│   └── shared/              # Shared utilities and modules
+│
+├── package.json
+├── pnpm-workspace.yaml
+└── README.md
 ```
-apps/web (React 19 + Vite)          Convex (realtime read model)
-        |                                   ^
-        | REST + cookies                    | outbox publisher
-        v                                   |
-services/api (Express 5) ------------------+
-        |  enqueue                        |
-        v                                 |
-Redis + BullMQ queues                     |
-        |                                 |
-        v                                 |
-services/worker --------------------------+
-   |        |             |
-   |        |             +--> GitHub REST/Git Data API
-   |        +----------------> AI providers (Gemini, Groq, fallback chain)
-   +-------------------------> MongoDB (authoritative state, audit, proposals)
-```
 
-Packages:
+*The directory structure above represents the intended high-level organization. Adjust it to match the actual repository.*
 
-| Path | Responsibility |
-| --- | --- |
-| `apps/web` | Dashboard, review UI, public landing page |
-| `services/api` | OAuth, sessions, repositories, runs, proposals, activity, webhooks |
-| `services/worker` | Generation, incremental patching, cleanup, apply, recovery |
-| `packages/shared` | Contracts, Zod schemas, enums, diff/markdown/redaction helpers, OpenAPI |
-| `packages/config` | Startup environment validation and configuration |
-| `packages/github` | OAuth client, REST/tree/blob access, webhook signature verification |
-| `packages/ai-engine` | Provider-agnostic structured output, prompts, fallback policy |
-| `packages/documentation-engine` | Inventory, manifests, section mapping, validation, README assembly, impact |
-| `packages/persistence` | Mongoose models, repositories, audit outbox, Convex publisher |
-| `convex` | Realtime schema, publish mutation and read query |
+---
 
-See [docs/architecture.md](docs/architecture.md) for request flows, data model and
-failure handling, [docs/security.md](docs/security.md) for the threat model, and
-[docs/api.md](docs/api.md) for the HTTP contract.
+## Getting Started
 
-## Quick start
+Follow these instructions to run CommitScribble locally.
 
-Prerequisites: Node.js >= 20.12, pnpm 10 (`npm install -g pnpm@10` or
-`corepack enable`), Docker (for local MongoDB and Redis), and a GitHub OAuth app.
-This is a pnpm workspace: `npm install` is not supported.
+### Prerequisites
+
+Make sure you have the following installed:
+
+- Node.js (LTS recommended)
+- pnpm
+- MongoDB
+- Redis
+- Git
+- GitHub Developer Account
+- Gemini API Key
+
+### 1. Clone the Repository
 
 ```bash
-cp .env.example .env                # PowerShell: Copy-Item .env.example .env
-# Fill SESSION_SECRET (48 random bytes, base64) and TOKEN_ENCRYPTION_KEY (32 random bytes, base64)
-docker compose up -d                # MongoDB 7 + Redis 7
-pnpm install --frozen-lockfile
-pnpm db:indexes                     # create MongoDB indexes
-pnpm dev                            # API :4000, worker, web :5173
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+
+cd CommitScribble
 ```
 
-The repository `.env` is loaded automatically by `@commitscibble/config` for local
-runs; real environment variables take precedence. Generate the two secrets with:
+### 2. Install Dependencies
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+pnpm install
 ```
 
-Open http://localhost:5173. `GET /health` is liveness, `GET /ready` checks MongoDB
-and Redis.
+### 3. Configure Environment Variables
 
-Without Docker, you can still run the web app on its own
-(`pnpm --filter @commitscibble/web dev`), which serves the landing page and docs.
-The API, worker and `pnpm db:indexes` require reachable MongoDB and Redis
-instances. `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` and `pnpm e2e`
-need no infrastructure; `pnpm e2e` starts the web dev server itself.
+Create the necessary `.env` files based on the project's `.env.example` files.
 
-### GitHub OAuth app
+Example configuration:
 
-Create an OAuth app at <https://github.com/settings/developers>:
+```env
+NODE_ENV=development
+PORT=5000
 
-- Homepage: `http://localhost:5173`
-- Callback: `http://localhost:4000/auth/github/callback`
+API_URL=http://localhost:5000
+APP_URL=http://localhost:5173
 
-Set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `GITHUB_CALLBACK_URL`. The app
-requests `read:user`, `user:email` and `repo` (needed to read and write README files
-in private repositories you grant).
+MONGO_URI=your_mongodb_connection_string
+REDIS_URL=your_redis_connection_string
 
-Optionally create a GitHub App for installation-scoped repository access: set
-`GITHUB_APP_ID`, `GITHUB_APP_SLUG` and `GITHUB_APP_PRIVATE_KEY`, and use
-`<API_URL>/auth/github/app/callback` as the setup URL. When configured, reads and
-writes for repositories covered by the installation use short-lived installation
-tokens; OAuth remains the identity and repository-listing path.
+SESSION_SECRET=your_session_secret
+TOKEN_ENCRYPTION_KEY=your_encryption_key
 
-### Webhooks
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_WEBHOOK_SECRET=your_webhook_secret
 
-Add a repository or organization webhook to
-`https://<api-host>/api/v1/webhooks/github` with content type `application/json`,
-the push event, and the secret in `GITHUB_WEBHOOK_SECRET`. Deliveries are verified
-with HMAC-SHA256 over the raw body, deduplicated by `X-GitHub-Delivery`, and only
-repositories that are connected and actively tracked enqueue work.
-
-### AI providers
-
-`AI_PROVIDER_PRIMARY=gemini` and `AI_PROVIDER_FALLBACK=groq` by default. Set
-`GEMINI_API_KEY`/`GEMINI_MODEL` and `GROQ_API_KEY`/`GROQ_MODEL`. Model identifiers
-are environment configuration, not compiled-in constants. The default Gemini id is
-`gemini-3.5-flash`; Google retires ids without notice, and a retired id fails with
-`AI generation failed: gemini rejected the request`. Check the ids a key can call
-with `GET https://generativelanguage.googleapis.com/v1beta/models` and update
-`GEMINI_MODEL` on both the API and worker. When the configured id is retired (404)
-or the model is overloaded (503), the Gemini provider retries the next known-good
-flash id and records the model that actually answered. Timeouts, bounded retries
-with jitter, rate-limit handling, concurrency limits and provider fallback live in
-`packages/ai-engine`; usage records (provider, model, attempt, latency) are stored
-per run.
-
-A deterministic mock provider exists for local development only. It requires
-`AI_ALLOW_MOCK=true`, is refused in production, and is labelled as mock in the UI
-and audit trail.
-
-### Realtime (optional)
-
-Create a Convex deployment, then set `CONVEX_URL` and a shared
-`COMMITSCIBBLE_PUBLISH_TOKEN` for both API and worker. Deploy `convex/` with
-`npx convex deploy`. Without these values the dashboard polls the API and the
-activity stream says so; nothing is fabricated.
-
-## Configuration
-
-All variables are documented in [.env.example](.env.example). The API and worker
-call `loadEnv()` at startup and fail with a list of missing or invalid variables
-instead of booting half-configured.
-
-Required in production: `NODE_ENV`, `APP_URL`, `API_URL`, `MONGO_URI`,
-`REDIS_URL`, `SESSION_SECRET` (32+ chars), `TOKEN_ENCRYPTION_KEY` (base64 32 bytes),
-`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL`,
-`GITHUB_WEBHOOK_SECRET`, and at least one AI provider key unless a mock is
-explicitly allowed. Optional: Convex, Razorpay (reserved), Resend (reserved),
-retention windows, README defaults and `CORS_ORIGINS`.
-
-## API
-
-Versioned under `/api/v1`, JSON responses, cookie sessions plus an `x-csrf-token`
-header for mutating requests. The served contract is available at
-`/api/v1/openapi.json`; a human-readable summary is in [docs/api.md](docs/api.md).
-
-```
-GET    /auth/github                     start OAuth (state cookie)
-GET    /auth/github/callback            verify state, exchange code, create session
-GET    /auth/github/app/callback       verify and store a GitHub App installation
-GET    /api/v1/auth/me                  current user + CSRF token + realtime key
-POST   /api/v1/auth/logout              revoke session
-POST   /api/v1/auth/github/revoke       revoke GitHub grant, sessions and repositories
-GET    /api/v1/repositories             accessible repositories with tracking state
-POST   /api/v1/repositories/:id/connect connect by GitHub repository id
-GET    /api/v1/repositories/:id         repository detail
-PATCH  /api/v1/repositories/:id/settings
-POST   /api/v1/repositories/:id/tracking {status: CONNECTED|PAUSED}
-POST   /api/v1/repositories/:id/disconnect
-POST   /api/v1/repositories/:id/generate|update|cleanup
-GET    /api/v1/repositories/:id/runs
-GET    /api/v1/runs/:runId              run + correlated events
-GET    /api/v1/runs/:runId/proposal
-POST   /api/v1/runs/:runId/retry
-POST   /api/v1/runs/:runId/cancel        cancel a queued or running run
-POST   /api/v1/proposals/:proposalId/approve|reject
-GET    /api/v1/activity                 filters: status, operation, repositoryId, page
-GET    /api/v1/activity/:logId
-POST   /api/v1/webhooks/github          HMAC-verified, deduplicated
-GET    /health | /ready | /api/v1/meta | /api/v1/openapi.json
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
-## Scripts
+**Important:** Never commit API keys, OAuth credentials, encryption keys, or other secrets to GitHub.
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | API, worker and web in parallel |
-| `pnpm build` | Build every workspace (topological) |
-| `pnpm typecheck` | Node workspaces and web |
-| `pnpm lint` | ESLint (flat config) |
-| `pnpm test` | Vitest unit + integration suite |
-| `pnpm test:coverage` | Test suite with coverage thresholds |
-| `pnpm e2e` | Playwright public-surface smoke tests |
-| `pnpm db:indexes` | Create MongoDB indexes |
+### 4. Start the Development Environment
 
-## Testing
+```bash
+pnpm dev
+```
 
-`pnpm test` runs 155 tests across 21 files: hashing and normalisation, diff and
-section mapping, changed-file classification, proposal validation, cleanup guards,
-provider fallback, webhook signatures, GitHub App JWT signing and installation
-token caching, session/CSRF/permission middleware, API route contracts, run
-cancellation, rate limiting, email delivery and templates, README assembly,
-incremental impact, plus a React component test.
-`pnpm test:coverage` enforces the committed coverage floor (statements/lines 33%,
-functions 45%, branches 68%). External services are mocked in tests; no
-real repository or credential is required.
+If your workspace uses separate service commands, start the frontend, API, and worker using their respective scripts.
 
-`pnpm e2e` runs public-page smoke tests against the Vite server. The authenticated
-lifecycle spec is opt-in (`E2E_LIVE=1` with a prepared API, worker, MongoDB, Redis
-and a stub GitHub server) and skips rather than pretending to pass. Install
-browsers once with `npx playwright install chromium`.
+### 5. Open the Application
+
+```text
+http://localhost:5173
+```
+
+---
+
+## Environment Configuration
+
+| Variable | Description |
+|---|---|
+| `NODE_ENV` | Application environment |
+| `PORT` | Backend server port |
+| `MONGO_URI` | MongoDB connection string |
+| `REDIS_URL` | Redis connection URL |
+| `SESSION_SECRET` | Session signing secret |
+| `TOKEN_ENCRYPTION_KEY` | Encryption key for sensitive tokens |
+| `GITHUB_CLIENT_ID` | GitHub OAuth application ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth application secret |
+| `GITHUB_WEBHOOK_SECRET` | GitHub webhook verification secret |
+| `GEMINI_API_KEY` | Gemini API authentication key |
+| `APP_URL` | Frontend application URL |
+| `API_URL` | Backend API URL |
+
+---
 
 ## Deployment
 
-The frontend deploys to Vercel (`vercel.json`), the API and worker to Railway
-(with Redis as a Railway database), MongoDB to Atlas, and realtime to Convex.
-Full instructions, including the Vercel API proxy needed to keep session cookies
-first-party, webhook and OAuth production URLs, backups and troubleshooting, are
-in [docs/deployment.md](docs/deployment.md).
+CommitScribble is designed to support a distributed deployment architecture.
 
-## Limitations (current build)
+| Component | Deployment |
+|---|---|
+| Frontend | Vercel |
+| Backend API | Railway / Render |
+| Worker | Railway / Render |
+| Database | MongoDB |
+| Cache and Queue | Redis |
 
-- GitHub sign-in uses an OAuth app. The optional GitHub App provides
-  installation-scoped tokens for repository writes when `GITHUB_APP_*` is set;
-  without it, writes use the OAuth token and its broad `repo` scope.
-- Billing is intentionally not implemented: no paid plans, prices, checkout or
-  quota enforcement are exposed, and `BILLING_ENABLED` remains `false`.
-- Transactional email notifications (review required, documentation applied, run
-  failed) are best-effort. They activate only when both `RESEND_API_KEY` and
-  `EMAIL_FROM` are set; delivery failures are logged and never fail a run.
-- Retrieval is path/manifest/priority based with hard context budgets. Embeddings
-  are not used; large monorepos may need deeper selection.
-- Realtime requires a Convex deployment. Without one the dashboard polls persisted
-  state.
-- The full lifecycle Playwright spec requires a prepared environment and does not
-  run in the default suite.
+Production deployments require correctly configured environment variables, OAuth callback URLs, CORS settings, database connectivity, and Redis connectivity.
+
+---
+
+## Security Considerations
+
+Security is an important part of repository management.
+
+CommitScribble is designed with the following considerations:
+
+- GitHub OAuth-based authentication.
+- Secure handling of authentication credentials.
+- Environment-based secret management.
+- Token encryption support.
+- Protected API endpoints.
+- Webhook verification.
+- Controlled access to connected repositories.
+
+---
+
+## Roadmap
+
+The following are planned development directions, not necessarily currently released features.
+
+- [ ] Advanced repository intelligence.
+- [ ] Automated documentation synchronization.
+- [ ] AI-powered codebase summaries.
+- [ ] Pull request documentation workflows.
+- [ ] More advanced repository analytics.
+- [ ] Customizable automation pipelines.
+- [ ] Multi-repository workspace management.
+- [ ] Team collaboration capabilities.
+- [ ] Additional AI model integrations.
+
+---
+
+## Contributing
+
+Contributions, suggestions, and bug reports are welcome.
+
+If you want to contribute:
+
+1. Fork the repository.
+2. Create a feature branch.
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. Commit your changes.
+
+```bash
+git commit -m "feat: add your feature"
+```
+
+4. Push your branch.
+
+```bash
+git push origin feature/your-feature-name
+```
+
+5. Open a Pull Request.
+
+Please ensure your changes are tested and follow the existing project conventions.
+
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-=======
-Soon To Announce 
->>>>>>> 9a4bd917f5b6947a0d418083926b8d69fcee09d3
+The licensing terms for this project are yet to be finalized. Please check this section before reusing or distributing the source code.
+
+---
+
+## Acknowledgements
+
+Built with modern open-source technologies and AI-powered development tools.
+
+Special thanks to the developer community and everyone contributing to making developer workflows more efficient.
+
+---
+
+## Connect With CommitScribble
+
+**Less repetitive work. More meaningful development.**
+
+[Live Application](https://commitscribble.vercel.app)
+
+**CommitScribble — Built for developers, designed for productivity.**
