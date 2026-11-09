@@ -6,7 +6,7 @@
 
 CommitScribble is an AI-powered developer productivity platform designed to simplify GitHub repository management. It connects with your repositories, analyzes project structures, generates meaningful documentation, and helps automate repetitive development workflows — all from one centralized workspace.
 
-[**Live Demo**](https://commitscribble.vercel.app) · **Documentation** · **Report a Bug** · **Request a Feature**
+[**Live Demo**](https://commitscribble.vercel.app) · 
 
 ---
 
