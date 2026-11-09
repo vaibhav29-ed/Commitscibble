@@ -1,0 +1,507 @@
+/*
+ * Marketing landing design system.
+ *
+ * Ported from the supplied CommitScibble landing UI. Every token and rule is
+ * scoped under `.cs-landing` (and the temporary `html.cs-landing-root` class)
+ * so the dashboard keeps its own Archivo/indigo design system untouched.
+ */
+
+@layer base {
+  .cs-landing {
+    color-scheme: light;
+    --background: #f7f7f4;
+    --foreground: #000000;
+    --surface-1: #251f19;
+    --surface-2: #ffffff;
+    --surface-3: #eeede6;
+    --accent-1: #0000ee;
+    --accent-2: #f48d16;
+    --muted-1: #251f19;
+    --muted-2: #0000ee;
+    --radius: 8px;
+
+    --text-primary: #251f19;
+    --text-secondary: #68615a;
+    --text-soft: #948b81;
+    --border-soft: rgba(37, 31, 25, 0.09);
+    --border-strong: rgba(37, 31, 25, 0.18);
+    --panel-solid: #ffffff;
+    --panel-soft: #f7f7f4;
+    --panel-code: #fafaf8;
+    --panel-glass: rgba(255, 255, 255, 0.82);
+    --panel-glass-strong: rgba(255, 255, 255, 0.94);
+    --nav-glass: rgba(255, 255, 255, 0.78);
+    --shadow-card: 0 12px 16px 0 #ebe8e4;
+    --shadow-float: 0 24px 60px rgba(37, 31, 25, 0.14);
+    --ambient-start: rgba(247, 247, 244, 0.86);
+    --ambient-mid: rgba(247, 247, 244, 0.34);
+    --ambient-end: rgba(247, 247, 244, 0.94);
+    --hero-start: rgba(37, 31, 25, 0.22);
+    --hero-mid: rgba(244, 141, 22, 0.12);
+    --hero-end: rgba(247, 247, 244, 0.92);
+    --selection: rgba(244, 141, 22, 0.22);
+  }
+
+  .cs-landing[data-theme="dark"] {
+    color-scheme: dark;
+    --background: #100e0c;
+    --foreground: #f5f2ec;
+    --surface-1: #251f19;
+    --surface-2: #1b1815;
+    --surface-3: #2a251f;
+    --accent-1: #8ea2ff;
+    --accent-2: #f5a33f;
+    --muted-1: #f5f2ec;
+    --muted-2: #8ea2ff;
+
+    --text-primary: #f5f2ec;
+    --text-secondary: #b7aea4;
+    --text-soft: #8f857b;
+    --border-soft: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --panel-solid: #1b1815;
+    --panel-soft: #171411;
+    --panel-code: #14110f;
+    --panel-glass: rgba(27, 24, 21, 0.82);
+    --panel-glass-strong: rgba(27, 24, 21, 0.95);
+    --nav-glass: rgba(24, 21, 18, 0.82);
+    --shadow-card: 0 16px 32px rgba(0, 0, 0, 0.28);
+    --shadow-float: 0 28px 70px rgba(0, 0, 0, 0.46);
+    --ambient-start: rgba(16, 14, 12, 0.88);
+    --ambient-mid: rgba(16, 14, 12, 0.56);
+    --ambient-end: rgba(16, 14, 12, 0.96);
+    --hero-start: rgba(12, 10, 8, 0.38);
+    --hero-mid: rgba(112, 65, 18, 0.16);
+    --hero-end: rgba(16, 14, 12, 0.92);
+    --selection: rgba(244, 141, 22, 0.3);
+  }
+
+  .cs-landing {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: "Geist", "DM Sans", sans-serif;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 400ms ease, color 400ms ease;
+  }
+
+  .cs-landing ::selection {
+    color: var(--text-primary);
+    background: var(--selection);
+  }
+
+  .cs-landing a {
+    color: var(--accent-1);
+    text-decoration: none;
+  }
+
+  .cs-landing :where(h1, h2, h3, h4) {
+    font-family: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+  }
+
+  .cs-landing button,
+  .cs-landing a,
+  .cs-landing input {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cs-landing button:focus-visible,
+  .cs-landing a:focus-visible,
+  .cs-landing input:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 3px;
+  }
+
+  .cs-landing button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  .cs-landing input::placeholder {
+    color: var(--text-soft);
+  }
+}
+
+/* The landing layout was measured against a 12px root, which scales every
+ * rem-based spacing utility. The class is added to <html> only while the
+ * landing page is mounted. */
+html.cs-landing-root {
+  font-size: 12px;
+  scroll-padding-top: 96px;
+}
+
+.cs-landing .font-display {
+  font-family: "DM Sans", "Geist", sans-serif;
+}
+
+.cs-landing .font-geist {
+  font-family: "Geist", "DM Sans", sans-serif;
+}
+
+.cs-landing .font-mono-code {
+  font-family: "Geist Mono", monospace;
+}
+
+/* Shared theme-aware surfaces */
+.cs-landing .theme-surface {
+  background-color: var(--panel-solid);
+  color: var(--text-primary);
+  border-color: var(--border-soft);
+}
+
+.cs-landing .theme-soft {
+  background-color: var(--panel-soft);
+  color: var(--text-primary);
+  border-color: var(--border-soft);
+}
+
+.cs-landing .theme-code {
+  background-color: var(--panel-code);
+  color: var(--text-primary);
+  border-color: var(--border-soft);
+}
+
+.cs-landing .theme-text {
+  color: var(--text-primary);
+}
+
+.cs-landing .theme-muted {
+  color: var(--text-secondary);
+}
+
+.cs-landing .theme-border {
+  border-color: var(--border-soft);
+}
+
+.cs-landing .glass-nav {
+  background: var(--nav-glass);
+  border-color: var(--border-soft);
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+}
+
+.cs-landing .glass-panel {
+  background: var(--panel-glass);
+  border-color: var(--border-soft);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
+}
+
+.cs-landing .glass-panel-strong {
+  background: var(--panel-glass-strong);
+  border-color: var(--border-soft);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.cs-landing .card,
+.cs-landing .theme-surface,
+.cs-landing .theme-soft,
+.cs-landing .theme-code,
+.cs-landing .glass-nav,
+.cs-landing .glass-panel,
+.cs-landing .glass-panel-strong,
+.cs-landing .parley-h2,
+.cs-landing .parley-h3 {
+  transition: background-color 350ms ease, border-color 350ms ease,
+    color 350ms ease, box-shadow 350ms ease;
+}
+
+/* Measured component blocks, powered by theme tokens */
+@layer components {
+  .cs-landing .card {
+    background: var(--panel-solid);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 8px;
+    font-size: 12px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .cs-landing .badge-pill {
+    color: var(--text-primary);
+    border-radius: 12px;
+    font-size: 12px;
+  }
+}
+
+/* Live status indicator */
+.cs-landing .live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--accent-2);
+  box-shadow: 0 0 8px 1px rgba(244, 141, 22, 0.75);
+  animation: landing-live-blink 1.5s ease-in-out infinite;
+}
+
+.cs-landing .live-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 141, 22, 0.8);
+  animation: landing-live-ring 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes landing-live-blink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
+}
+
+@keyframes landing-live-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.55);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: scale(2.15);
+  }
+}
+
+.cs-landing .hero-wash {
+  background: linear-gradient(
+    180deg,
+    var(--hero-start) 0%,
+    var(--hero-mid) 48%,
+    var(--hero-end) 92%,
+    var(--background) 100%
+  );
+}
+
+.cs-landing .ambient-wash {
+  background: linear-gradient(
+    180deg,
+    var(--ambient-start) 0%,
+    var(--ambient-mid) 50%,
+    var(--ambient-end) 100%
+  );
+}
+
+.cs-landing .ambient-image {
+  transition: opacity 400ms ease, filter 400ms ease, transform 800ms ease;
+}
+
+.cs-landing[data-theme="dark"] .ambient-image {
+  opacity: 0.2 !important;
+  filter: saturate(0.65) brightness(0.58);
+}
+
+.cs-landing .interactive-lift {
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 350ms ease, border-color 250ms ease, background-color 350ms ease;
+}
+
+.cs-landing .interactive-lift:hover {
+  transform: translateY(-5px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-float);
+}
+
+.cs-landing .nav-link {
+  position: relative;
+  transition: color 220ms ease, background-color 220ms ease;
+}
+
+.cs-landing .nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent-2);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cs-landing .nav-link:hover::after,
+.cs-landing .nav-link[aria-current="true"]::after {
+  transform: scaleX(1);
+}
+
+.cs-landing .theme-option {
+  transition: color 220ms ease, background-color 220ms ease,
+    box-shadow 220ms ease, transform 220ms ease;
+}
+
+.cs-landing .theme-option svg {
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cs-landing .theme-option[aria-pressed="true"] svg {
+  transform: rotate(12deg) scale(1.06);
+}
+
+.cs-landing .faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 250ms ease;
+}
+
+.cs-landing .faq-answer[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.cs-landing .faq-answer > div {
+  overflow: hidden;
+}
+
+.cs-landing .content-swap {
+  animation: landing-content-swap 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes landing-content-swap {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-spinner-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.cs-landing .framer-spinner {
+  animation: landing-spinner-spin 1.1s linear infinite;
+}
+
+/* Typography hierarchy */
+.cs-landing .parley-h1 {
+  font-family: "DM Sans", "Geist", sans-serif;
+  font-size: 68px;
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.cs-landing .parley-h2 {
+  font-family: "DM Sans", "Geist", sans-serif;
+  font-size: 52px;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cs-landing .parley-h3 {
+  font-family: "DM Sans", "Geist", sans-serif;
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .cs-landing .parley-h1 {
+    font-size: 40px;
+  }
+  .cs-landing .parley-h2 {
+    font-size: 36px;
+  }
+}
+
+/* Legacy utility colors mapped to the active theme */
+.cs-landing[data-theme="dark"] .text-\[\#251f19\] {
+  color: var(--text-primary) !important;
+}
+
+.cs-landing[data-theme="dark"] .text-\[\#68615a\] {
+  color: var(--text-secondary) !important;
+}
+
+.cs-landing[data-theme="dark"] .text-\[\#0000ee\] {
+  color: var(--accent-1) !important;
+}
+
+.cs-landing[data-theme="dark"] .bg-white,
+.cs-landing[data-theme="dark"] .bg-white\/95,
+.cs-landing[data-theme="dark"] .bg-white\/90,
+.cs-landing[data-theme="dark"] .bg-white\/85,
+.cs-landing[data-theme="dark"] .bg-white\/75,
+.cs-landing[data-theme="dark"] .bg-white\/60 {
+  background-color: var(--panel-glass-strong) !important;
+  color: var(--text-primary);
+}
+
+.cs-landing .bento-card {
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 350ms ease, border-color 250ms ease, background-color 350ms ease;
+}
+
+.cs-landing .bento-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-float);
+}
+
+.cs-landing[data-theme="dark"] article.theme-surface {
+  box-shadow: var(--shadow-card);
+}
+
+.cs-landing[data-theme="dark"] .bg-\[\#f7f7f4\],
+.cs-landing[data-theme="dark"] .bg-\[\#f7f7f4\]\/80,
+.cs-landing[data-theme="dark"] .bg-\[\#fafaf8\] {
+  background-color: var(--panel-soft) !important;
+}
+
+.cs-landing[data-theme="dark"] .bg-\[\#eeede6\],
+.cs-landing[data-theme="dark"] .bg-\[\#eeede6\]\/90,
+.cs-landing[data-theme="dark"] .bg-\[\#eeede6\]\/70 {
+  background-color: var(--surface-3) !important;
+}
+
+.cs-landing[data-theme="dark"] .border-\[\#eeede6\],
+.cs-landing[data-theme="dark"] .border-\[\#e5e2dc\],
+.cs-landing[data-theme="dark"] .border-\[\#f7f7f4\] {
+  border-color: var(--border-soft) !important;
+}
+
+.cs-landing[data-theme="dark"] .bg-\[\#251f19\] {
+  background-color: #332b24 !important;
+}
+
+.cs-landing[data-theme="dark"] .text-emerald-950 {
+  color: #a7f3d0 !important;
+}
+
+.cs-landing[data-theme="dark"] .text-rose-900 {
+  color: #fecdd3 !important;
+}
+
+.cs-landing[data-theme="dark"] .shadow-\[0_12px_16px_0px_\#EBE8E4\] {
+  box-shadow: var(--shadow-card) !important;
+}

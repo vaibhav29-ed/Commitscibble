@@ -1,71 +1,90 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Activity,
-  BookOpen,
-  ChevronRight,
-  Github,
+  ArrowLeft,
+  Bell,
+  FileText,
+  FolderGit2,
+  GitPullRequest,
   LayoutDashboard,
+  ListTodo,
   LogOut,
-  Menu,
+  Monitor,
   Moon,
   Settings,
   Sun,
-  X,
 } from "lucide-react";
 import { ApiError } from "../lib/api";
-import { useLogout, useMe } from "../lib/query";
+import { useActivity, useLogout, useMe, useRepositories } from "../lib/query";
 import { useTheme } from "../lib/theme";
+import { useRootScale } from "../lib/use-root-scale";
 import { cn } from "../lib/cn";
-import { Skeleton } from "./ui";
 
 export function Logo({ withWordmark = true }: { withWordmark?: boolean }) {
   return (
     <Link to="/" className="group flex items-center gap-2.5" aria-label="CommitScibble home">
-      <img
-        src="/brand/logo.png"
-        alt=""
-        width={32}
-        height={32}
-        className="h-8 w-8 rounded-md object-cover shadow-subtle ring-1 ring-black/5 transition-transform duration-150 ease-smooth group-hover:-translate-y-0.5 dark:ring-white/10"
-      />
+      <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-[8px] bg-[#251f19] shadow-xs transition-transform duration-300 group-hover:rotate-[-4deg]">
+        <img src="/brand/logo.png" alt="" className="h-5 w-5 object-contain" />
+      </span>
       {withWordmark ? (
-        <span className="font-display text-[15px] font-semibold tracking-normal">
-          Commit<span className="text-muted-foreground">Scibble</span>
+        <span className="font-display text-[15px] font-semibold tracking-tight text-[#251f19] dark:text-[#f5f2ec]">
+          CommitScibble
         </span>
       ) : null}
     </Link>
   );
 }
 
-const NAV_GROUPS = [
-  {
-    label: "Workspace",
-    items: [
-      { to: "/dashboard", label: "Overview", icon: LayoutDashboard, end: true },
-      { to: "/dashboard/repositories", label: "Repositories", icon: Github, end: false },
-      { to: "/dashboard/activity", label: "Activity", icon: Activity, end: false },
-    ],
-  },
-  {
-    label: "Account",
-    items: [{ to: "/dashboard/settings", label: "Settings", icon: Settings, end: false }],
-  },
-  {
-    label: "Resources",
-    items: [{ to: "/docs", label: "Documentation", icon: BookOpen, end: false }],
-  },
-];
+const NAV = [
+  { to: "/dashboard", label: "Overview", icon: LayoutDashboard, end: true },
+  { to: "/dashboard/repositories", label: "Repositories", icon: FolderGit2, end: false },
+  { to: "/dashboard/docs", label: "Documentation", icon: FileText, end: false },
+  { to: "/dashboard/patches", label: "Patches", icon: GitPullRequest, end: false },
+  { to: "/dashboard/jobs", label: "Background jobs", icon: ListTodo, end: false },
+  { to: "/dashboard/activity", label: "Activity", icon: Activity, end: false },
+  { to: "/dashboard/settings", label: "Settings", icon: Settings, end: false },
+] as const;
+
+function pageTitle(pathname: string): string {
+  if (pathname === "/dashboard") return "Overview";
+  if (pathname.startsWith("/dashboard/repositories/")) return "Repository";
+  if (pathname.startsWith("/dashboard/repositories")) return "Repositories";
+  if (pathname.startsWith("/dashboard/reviews/")) return "Review";
+  if (pathname.startsWith("/dashboard/docs")) return "Documentation";
+  if (pathname.startsWith("/dashboard/patches")) return "Patches";
+  if (pathname.startsWith("/dashboard/jobs")) return "Background jobs";
+  if (pathname.startsWith("/dashboard/activity/")) return "Activity event";
+  if (pathname.startsWith("/dashboard/activity")) return "Activity";
+  if (pathname.startsWith("/dashboard/settings")) return "Settings";
+  if (pathname.startsWith("/docs")) return "Documentation";
+  return "Workspace";
+}
+
+function isNavActive(pathname: string, to: string, end: boolean): boolean {
+  if (to === "/dashboard/repositories") {
+    return (
+      pathname.startsWith("/dashboard/repositories") ||
+      pathname.startsWith("/dashboard/reviews")
+    );
+  }
+  if (to === "/dashboard/activity") return pathname.startsWith("/dashboard/activity");
+  return end ? pathname === to : pathname.startsWith(to);
+}
 
 export function ProtectedRoute() {
   const me = useMe();
+  useRootScale("cs-dash-root");
+
   if (me.isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-sm space-y-3">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+      <div className="grid min-h-screen place-items-center bg-[var(--background)]">
+        <div className="content-swap flex flex-col items-center gap-4">
+          <Logo withWordmark={false} />
+          <div className="inline-flex items-center gap-2 text-[12px] text-[#68615a] dark:text-[#b7aea4]">
+            <span className="live-dot" />
+            Restoring your workspace…
+          </div>
         </div>
       </div>
     );
@@ -81,225 +100,275 @@ export function ProtectedRoute() {
 
 export function AppShell() {
   const me = useMe();
+  const repositories = useRepositories();
+  const activity = useActivity({ pageSize: 50 });
+  const logout = useLogout();
+  const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const logout = useLogout();
-  const { theme, toggle } = useTheme();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    setMobileOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname]);
 
   const user = me.data?.user;
+  const connected = repositories.data?.connected ?? [];
+  const pendingReviews = connected.filter((repo) => repo.pendingProposalId);
+  const running = connected.filter((repo) =>
+    repo.lastRun ? ["QUEUED", "RUNNING", "RETRYING"].includes(repo.lastRun.status) : false,
+  );
+  const failedRecent = (activity.data?.items ?? []).filter(
+    (event) =>
+      event.type === "FAILED" &&
+      Date.now() - new Date(event.createdAt).getTime() < 24 * 60 * 60 * 1000,
+  ).length;
+  const navBadge = (to: string): number => {
+    if (to === "/dashboard/repositories") return pendingReviews.length;
+    if (to === "/dashboard/patches") return pendingReviews.length;
+    if (to === "/dashboard/jobs") return running.length;
+    if (to === "/dashboard/activity") return failedRecent;
+    return 0;
+  };
+
+  const title = pageTitle(location.pathname);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text-primary)]">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:px-3 focus:py-2 focus:text-sm"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-[8px] focus:bg-[var(--panel-solid)] focus:px-3 focus:py-2 focus:text-[12px]"
       >
         Skip to content
       </a>
 
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-card transition-transform duration-150 ease-smooth lg:translate-x-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="flex h-16 items-center justify-between border-b border-border/70 px-4">
-          <Logo />
-          <button
-            type="button"
-            className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground transition-colors duration-150 ease-smooth hover:bg-muted hover:text-foreground lg:hidden"
-            onClick={() => setMobileOpen(false)}
-            aria-label="Close navigation"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      {/* Floating glass sidebar */}
+      <aside className="glass-panel fixed bottom-4 left-4 top-4 z-30 hidden w-[240px] flex-col rounded-[20px] border p-4 shadow-[var(--shadow-card)] lg:flex">
+        <Link to="/" className="group flex items-center gap-2.5 text-left">
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-[8px] bg-[#251f19] transition-transform duration-300 group-hover:rotate-[-4deg]">
+            <img src="/brand/logo.png" alt="" className="h-5 w-5 object-contain" />
+          </span>
+          <span>
+            <span className="block font-display text-[15px] font-semibold tracking-tight text-[#251f19] dark:text-[#f5f2ec]">
+              CommitScibble
+            </span>
+            <span className="block text-[10px] uppercase tracking-[0.14em] text-[#68615a] dark:text-[#b7aea4]">
+              Workspace
+            </span>
+          </span>
+        </Link>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Primary">
-          {NAV_GROUPS.map((group) => {
-            const headingId = `nav-group-${group.label.toLowerCase()}`;
+        <nav className="mt-7 space-y-1" aria-label="Dashboard">
+          {NAV.map((item) => {
+            const active = isNavActive(location.pathname, item.to, item.end);
+            const Icon = item.icon;
+            const badge = navBadge(item.to);
             return (
-              <div
-                key={group.label}
-                role="group"
-                aria-labelledby={headingId}
-                className="mb-6 last:mb-0"
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-[12px] font-medium transition-all duration-200",
+                  active
+                    ? "bg-[#251f19] text-white shadow-[0_8px_18px_rgba(37,31,25,0.18)] dark:bg-[#f5f2ec] dark:text-[#251f19]"
+                    : "text-[#251f19] hover:translate-x-0.5 hover:bg-[#eeede6] dark:text-[#f5f2ec] dark:hover:bg-[#2a251f]",
+                )}
               >
-                <p
-                  id={headingId}
-                  className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80"
-                >
-                  {group.label}
-                </p>
-                <ul className="space-y-0.5">
-                  {group.items.map((item) => (
-                    <li key={item.to}>
-                      <NavLink
-                        to={item.to}
-                        end={item.end}
-                        className={({ isActive }) =>
-                          cn(
-                            "group relative flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ease-smooth",
-                            isActive
-                              ? "bg-muted text-foreground"
-                              : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
-                          )
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <span
-                              aria-hidden
-                              className={cn(
-                                "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-brand-600 transition-opacity duration-150 dark:bg-brand-400",
-                                isActive ? "opacity-100" : "opacity-0",
-                              )}
-                            />
-                            <item.icon
-                              className={cn(
-                                "h-4 w-4 transition-colors duration-150",
-                                isActive
-                                  ? "text-brand-600 dark:text-brand-400"
-                                  : "text-muted-foreground",
-                              )}
-                            />
-                            {item.label}
-                          </>
-                        )}
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    active
+                      ? "text-[#f48d16]"
+                      : "text-[#68615a] dark:text-[#b7aea4]",
+                  )}
+                />
+                {item.label}
+                {badge > 0 ? (
+                  <span className="ml-auto rounded-full bg-[#f48d16] px-1.5 py-0.5 text-[10px] text-white">
+                    {badge}
+                  </span>
+                ) : null}
+              </NavLink>
             );
           })}
         </nav>
 
-        <div className="border-t border-border p-3">
-          <div className="rounded-lg border border-border bg-muted/40 p-2.5">
-            <div className="flex items-center gap-2.5">
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt=""
-                  className="h-8 w-8 rounded-full border border-border"
-                  loading="lazy"
-                />
+        <div className="mt-auto space-y-3">
+          <Link
+            to={
+              running.length > 0
+                ? `/dashboard/repositories/${running[0].id}`
+                : "/dashboard/jobs"
+            }
+            className="theme-soft block w-full rounded-[14px] border p-3 text-left transition-colors hover:border-[var(--border-strong)]"
+          >
+            <span className="flex items-center gap-2 text-[12px] font-medium text-[var(--text-primary)]">
+              {running.length > 0 ? (
+                <span className="live-dot" />
               ) : (
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
-                  {user?.githubLogin?.slice(0, 2).toUpperCase() ?? "CS"}
-                </span>
+                <span className="h-2 w-2 rounded-full bg-[#948b81]" />
               )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium leading-tight">
-                  {user?.displayName ?? user?.githubLogin}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">@{user?.githubLogin}</p>
-              </div>
+              {running.length > 0
+                ? `${running.length} run${running.length === 1 ? "" : "s"} active`
+                : "Queue idle"}
+            </span>
+            <span className="mt-1 block truncate text-[11px] text-[var(--text-secondary)]">
+              {running[0]
+                ? `${running[0].fullName} · ${running[0].lastRun ? running[0].lastRun.operation.toLowerCase().replaceAll("_", " ") : "run"}`
+                : "Start an analysis to queue work."}
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-2.5 border-t border-[var(--border-soft)] pt-3">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt=""
+                className="h-9 w-9 rounded-full border border-[var(--border-soft)]"
+                loading="lazy"
+              />
+            ) : (
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-[#eeede6] text-[11px] font-semibold text-[#251f19] dark:bg-[#2a251f] dark:text-[#f5f2ec]">
+                {user?.githubLogin?.slice(0, 2).toUpperCase() ?? "CS"}
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-medium text-[var(--text-primary)]">
+                @{user?.githubLogin ?? "github"}
+              </p>
+              <p className="truncate text-[11px] text-[var(--text-secondary)]">
+                {user?.displayName ?? "GitHub session"}
+              </p>
             </div>
             <button
               type="button"
-              className="mt-2 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors duration-150 ease-smooth hover:bg-card hover:text-foreground"
               onClick={() => {
-                logout.mutate(undefined, {
-                  onSettled: () => navigate("/signin"),
-                });
+                logout.mutate(undefined, { onSettled: () => navigate("/signin") });
               }}
+              title="Log out"
+              aria-label="Log out"
+              className="flex h-8 w-8 items-center justify-center rounded-[9px] text-[#68615a] transition-colors hover:bg-[#eeede6] hover:text-[#251f19] dark:text-[#b7aea4] dark:hover:bg-[#2a251f] dark:hover:text-[#f5f2ec]"
             >
-              <LogOut className="h-3.5 w-3.5" /> Sign out
+              <LogOut className="h-4 w-4" />
             </button>
           </div>
         </div>
       </aside>
 
-      {mobileOpen ? (
-        <div
-          className="motion-fade-in fixed inset-0 z-30 bg-black/40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden
-        />
-      ) : null}
+      <div className="lg:pl-[272px]">
+        {/* Glass top bar */}
+        <div className="sticky top-0 z-20 px-3 pt-4 sm:px-6">
+          <header className="glass-nav flex items-center justify-between gap-3 rounded-[14px] border px-3 py-2.5 shadow-[0_10px_32px_rgba(37,31,25,0.08)] sm:px-4">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="lg:hidden">
+                <Logo withWordmark={false} />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-[0.14em] text-[#68615a] dark:text-[#b7aea4]">
+                  Workspace
+                </div>
+                <div className="truncate font-display text-[14px] font-medium text-[#251f19] dark:text-[#f5f2ec]">
+                  {title}
+                </div>
+              </div>
+            </div>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:px-6">
-          <div className="flex min-w-0 items-center gap-2">
-            <button
-              type="button"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors duration-150 ease-smooth hover:bg-muted hover:text-foreground lg:hidden"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open navigation"
-            >
-              <Menu className="h-4 w-4" />
-            </button>
-            <Breadcrumbs pathname={location.pathname} />
-          </div>
-          <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-card p-0.5 shadow-subtle">
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="hidden h-8 items-center gap-1.5 rounded-full px-2.5 text-xs text-muted-foreground transition-colors duration-150 ease-smooth hover:bg-muted hover:text-foreground sm:flex"
-            >
-              <Github className="h-3.5 w-3.5" /> GitHub
-            </a>
-            <button
-              type="button"
-              onClick={toggle}
-              className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors duration-150 ease-smooth hover:bg-muted hover:text-foreground"
-              aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-          </div>
-        </header>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/dashboard/activity"
+                aria-label="Activity and notifications"
+                className="relative flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#eeede6] text-[#251f19] transition-colors hover:bg-[#e3e1d7] dark:bg-[#2a251f] dark:text-[#f5f2ec]"
+              >
+                <Bell className="h-4 w-4" />
+                {failedRecent > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] text-white">
+                    {failedRecent}
+                  </span>
+                ) : null}
+              </Link>
 
-        <main id="main" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-          <Outlet />
+              <div
+                role="group"
+                aria-label="Color theme"
+                className="inline-flex items-center rounded-[10px] border border-black/5 bg-[#eeede6] p-0.5 dark:border-white/10 dark:bg-[#2a251f]"
+              >
+                {[
+                  { mode: "light" as const, label: "Light", icon: Sun },
+                  { mode: "dark" as const, label: "Dark", icon: Moon },
+                  { mode: "system" as const, label: "System", icon: Monitor },
+                ].map(({ mode, label, icon: Icon }) => {
+                  const active = theme === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      aria-pressed={active}
+                      aria-label={`${label} theme`}
+                      title={`${label} theme`}
+                      onClick={() => setTheme(mode)}
+                      className={cn(
+                        "theme-option inline-flex items-center gap-1 rounded-[8px] px-2 py-1 text-[11px] font-medium",
+                        active
+                          ? "bg-[#251f19] text-white shadow-xs dark:bg-[#f5f2ec] dark:text-[#251f19]"
+                          : "text-[#68615a] hover:text-[#251f19] dark:text-[#b7aea4] dark:hover:text-[#f5f2ec]",
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      <span className="hidden xl:inline">{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Link
+                to="/"
+                className="hidden items-center gap-1 rounded-[9px] px-2.5 py-1.5 text-[11px] font-medium text-[#251f19] transition-colors hover:bg-[#eeede6] dark:text-[#f5f2ec] dark:hover:bg-[#2a251f] sm:inline-flex"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Site
+              </Link>
+            </div>
+          </header>
+
+          {/* Mobile navigation */}
+          <nav
+            className="dash-scroll mt-2 flex gap-1.5 overflow-x-auto pb-1 lg:hidden"
+            aria-label="Dashboard mobile"
+          >
+            {NAV.map((item) => {
+              const Icon = item.icon;
+              const active = isNavActive(location.pathname, item.to, item.end);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[10px] border px-3 py-2 text-[12px] font-medium",
+                    active
+                      ? "border-transparent bg-[#251f19] text-white dark:bg-[#f5f2ec] dark:text-[#251f19]"
+                      : "glass-panel text-[#251f19] dark:text-[#f5f2ec]",
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      active && "text-[#f48d16]",
+                    )}
+                  />
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+
+        <main id="main" className="max-w-[1240px] px-3 pb-16 pt-6 sm:px-6">
+          <div key={location.pathname} className="content-swap">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
   );
-}
-
-function Breadcrumbs({ pathname }: { pathname: string }) {
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length === 0) return null;
-  return (
-    <nav aria-label="Breadcrumb" className="min-w-0">
-      <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        {segments.map((segment, index) => {
-          const isLast = index === segments.length - 1;
-          return (
-            <li
-              key={`${segment}-${index}`}
-              className={cn("min-w-0 items-center gap-1.5", isLast ? "flex" : "hidden sm:flex")}
-            >
-              {index > 0 ? (
-                <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/60" aria-hidden />
-              ) : null}
-              <span
-                aria-current={isLast ? "page" : undefined}
-                className={cn("truncate", isLast && "font-medium text-foreground")}
-              >
-                {formatSegment(segment)}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
-  );
-}
-
-function formatSegment(segment: string): string {
-  if (/^[a-f0-9]{24}$/i.test(segment)) return "Detail";
-  return segment
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

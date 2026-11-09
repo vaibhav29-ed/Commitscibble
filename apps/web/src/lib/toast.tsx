@@ -78,28 +78,41 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={item.id}
             data-leaving={leavingIds.has(item.id) ? "true" : undefined}
             className={cn(
-              "motion-toast pointer-events-auto flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 shadow-overlay",
-              item.variant === "error" && "border-danger/40",
-              item.variant === "success" && "border-success/40",
+              "motion-toast glass-panel-strong pointer-events-auto flex items-start gap-3 rounded-[14px] border p-3.5 shadow-[var(--shadow-float)]",
+              item.variant === "error" && "border-rose-500/35",
+              item.variant === "success" && "border-emerald-500/35",
             )}
           >
-            {item.variant === "success" ? (
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-            ) : item.variant === "error" ? (
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
-            ) : (
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-            )}
+            <span
+              className={cn(
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-[9px]",
+                item.variant === "success"
+                  ? "tone-success"
+                  : item.variant === "error"
+                    ? "tone-danger"
+                    : "tone-warn",
+              )}
+            >
+              {item.variant === "success" ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : item.variant === "error" ? (
+                <AlertTriangle className="h-4 w-4" />
+              ) : (
+                <Info className="h-4 w-4" />
+              )}
+            </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{item.title}</p>
+              <p className="text-[12px] font-medium text-[var(--text-primary)]">{item.title}</p>
               {item.description ? (
-                <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+                  {item.description}
+                </p>
               ) : null}
             </div>
             <button
               type="button"
               onClick={() => dismiss(item.id)}
-              className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+              className="flex h-6 w-6 items-center justify-center rounded-[7px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]"
               aria-label="Dismiss notification"
             >
               <X className="h-3.5 w-3.5" />

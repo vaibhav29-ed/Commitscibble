@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, GitBranch, Loader2, Lock, Pause, Play, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  ExternalLink,
+  GitBranch,
+  ListTodo,
+  Loader2,
+  Lock,
+  Pause,
+  Play,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
 import { SECTION_KEYS, SECTION_TITLES, type SectionKey } from "@commitscibble/shared";
 import {
   useCancelRun,
@@ -8,26 +20,27 @@ import {
   useRepositorySettings,
   useRepositoryTracking,
 } from "../lib/query";
+import { DisconnectRepository, RepoActions } from "../components/repo-actions";
+import { RunRow, operationLabel } from "../components/activity";
 import {
-  Badge,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  EmptyState,
   Input,
   Label,
-  PageHeader,
+  Panel,
+  PanelTitle,
+  Pill,
   Select,
   Skeleton,
   StatusPill,
   Switch,
+  Tabs,
   Textarea,
 } from "../components/ui";
-import { DisconnectRepository, RepoActions } from "../components/repo-actions";
-import { RunRow, operationLabel } from "../components/activity";
 import { formatDate, relativeTime, shortSha } from "../lib/format";
+
+const WAVE_IMAGE = "/brand/landing/workflow-wave.png";
+
+type Tab = "overview" | "runs" | "settings";
 
 interface SettingsForm {
   readmePath: string;
@@ -45,6 +58,7 @@ export default function RepositoryDetailPage() {
   const save = useRepositorySettings(id ?? "");
   const tracking = useRepositoryTracking(id ?? "");
   const cancel = useCancelRun();
+  const [tab, setTab] = useState<Tab>("overview");
   const [form, setForm] = useState<SettingsForm | null>(null);
 
   const repository = detail.data?.repository;
@@ -65,31 +79,33 @@ export default function RepositoryDetailPage() {
   if (detail.isPending) {
     return (
       <div className="space-y-3">
-        <Skeleton className="h-24 w-full" />
         <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-80 w-full" />
       </div>
     );
   }
 
   if (detail.isError || !repository) {
     return (
-      <Card>
-        <CardContent>
-          <p className="text-sm leading-relaxed text-danger">
-            This repository could not be loaded.{" "}
-            {detail.error instanceof Error ? detail.error.message : ""}
-          </p>
-          <Link to="/dashboard/repositories" className="mt-3 inline-block text-xs text-accent hover:underline">
-            Back to repositories
-          </Link>
-        </CardContent>
-      </Card>
+      <Panel>
+        <p className="text-[13px] leading-relaxed text-rose-600 dark:text-rose-400">
+          This repository could not be loaded.{" "}
+          {detail.error instanceof Error ? detail.error.message : ""}
+        </p>
+        <Link
+          to="/dashboard/repositories"
+          className="mt-3 inline-block text-[12px] font-medium text-[#0000ee] hover:underline dark:text-[#8ea2ff]"
+        >
+          Back to repositories
+        </Link>
+      </Panel>
     );
   }
 
   const activeRun = detail.data?.runs.find((run) =>
     ["QUEUED", "RUNNING", "RETRYING"].includes(run.status),
   );
+  const runs = detail.data?.runs ?? [];
 
   const toggleSection = (key: SectionKey) => {
     setForm((current) => {
@@ -108,30 +124,55 @@ export default function RepositoryDetailPage() {
     <div className="space-y-5">
       <Link
         to="/dashboard/repositories"
-        className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-150 ease-smooth hover:text-foreground"
+        className="inline-flex items-center gap-1 text-[12px] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
       >
-        <ArrowLeft className="h-3 w-3" /> Repositories
+        <ArrowLeft className="h-3.5 w-3.5" /> Repositories
       </Link>
-      <PageHeader
-        className="mt-2"
-        eyebrow="Repository"
-        title={repository.fullName}
-        meta={
-          <>
-            <Badge tone="outline">
-              <GitBranch className="h-3 w-3" /> {repository.defaultBranch}
-            </Badge>
-            <Badge tone="outline">
-              {repository.private ? <Lock className="h-3 w-3" /> : null}
-              {repository.private ? "Private" : "Public"}
-            </Badge>
-            <StatusPill value={repository.trackingStatus} />
-            <StatusPill value={repository.documentationStatus} />
-            <StatusPill value={repository.settings.updateMode} />
-          </>
-        }
-        actions={
-          <>
+
+      <section className="relative overflow-hidden rounded-[24px] border border-[var(--border-soft)] shadow-[var(--shadow-card)]">
+        <img
+          src={WAVE_IMAGE}
+          alt=""
+          className="ambient-image absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="ambient-wash absolute inset-0" />
+        <div className="relative z-10 flex flex-col justify-between gap-6 p-6 sm:p-8 lg:flex-row lg:items-end">
+          <div className="min-w-0">
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              <Pill icon={repository.private ? Lock : ArrowUpRight}>
+                {repository.private ? "private" : "public"}
+              </Pill>
+              <Pill icon={GitBranch}>{repository.defaultBranch}</Pill>
+              <StatusPill value={repository.trackingStatus} />
+              <StatusPill value={repository.documentationStatus} />
+              <Pill tone={repository.settings.updateMode === "AUTOMATIC" ? "success" : "warn"}>
+                {repository.settings.updateMode === "AUTOMATIC" ? "automatic" : "review required"}
+              </Pill>
+            </div>
+            <h1 className="dash-title break-words">{repository.fullName}</h1>
+            <p className="mt-2 max-w-[620px] text-[14px] leading-relaxed text-[var(--text-secondary)]">
+              {repository.description || "No description on GitHub."}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[var(--text-secondary)]">
+              <span>
+                Last updated{" "}
+                {repository.lastSuccessfulRunAt
+                  ? relativeTime(repository.lastSuccessfulRunAt)
+                  : "never"}
+              </span>
+              <span className="font-mono">{shortSha(repository.lastProcessedCommitSha)}</span>
+              <a
+                href={repository.htmlUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 font-medium text-[#0000ee] hover:underline dark:text-[#8ea2ff]"
+              >
+                Open on GitHub <ArrowUpRight className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap gap-2">
             <RepoActions repository={repository} showReview />
             <Button
               variant="outline"
@@ -143,34 +184,32 @@ export default function RepositoryDetailPage() {
             >
               {repository.trackingStatus === "PAUSED" ? (
                 <>
-                  <Play className="h-3.5 w-3.5" /> Resume tracking
+                  <Play className="h-3.5 w-3.5" /> Resume
                 </>
               ) : (
                 <>
-                  <Pause className="h-3.5 w-3.5" /> Pause tracking
+                  <Pause className="h-3.5 w-3.5" /> Pause
                 </>
               )}
             </Button>
             <DisconnectRepository repository={repository} redirectTo="/dashboard/repositories" />
-          </>
-        }
-      />
+          </div>
+        </div>
+      </section>
 
       {activeRun ? (
-        <div className="flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 p-3 text-sm">
-          <Loader2 className="h-4 w-4 animate-spin text-accent" />
-          <p>
+        <div className="tone-warn flex flex-wrap items-center gap-3 rounded-[14px] px-4 py-3 text-[12px]">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <p className="flex-1">
             <span className="font-medium">{operationLabel(activeRun.operation)}</span> is{" "}
             {activeRun.status.toLowerCase()}.{" "}
-            <Link to={`/dashboard/reviews/${activeRun.id}`} className="text-accent hover:underline">
+            <Link to={`/dashboard/reviews/${activeRun.id}`} className="font-medium underline">
               Follow live progress
             </Link>
-            .
           </p>
           <Button
             variant="outline"
             size="sm"
-            className="ml-auto"
             loading={cancel.isPending}
             onClick={() => cancel.mutate(activeRun.id)}
           >
@@ -179,29 +218,16 @@ export default function RepositoryDetailPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoTile label="Last processed commit" value={shortSha(repository.lastProcessedCommitSha)} mono />
-        <InfoTile
-          label="Last successful update"
-          value={repository.lastSuccessfulRunAt ? relativeTime(repository.lastSuccessfulRunAt) : "Never"}
-        />
-        <InfoTile label="README path" value={repository.settings.readmePath} mono />
-        <InfoTile
-          label="Target branch"
-          value={repository.settings.targetBranch ?? repository.defaultBranch}
-          mono
-        />
-      </div>
-
       {detail.data?.pendingProposal ? (
-        <Card className="border-warning/40">
-          <CardContent className="flex flex-wrap items-center justify-between gap-3">
+        <Panel className="border-[#f48d16]/40">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="flex items-center gap-2 text-sm font-medium">
-                <ShieldCheck className="h-4 w-4 text-warning" /> Proposal awaiting review
+              <p className="flex items-center gap-2 text-[13px] font-medium text-[var(--text-primary)]">
+                <ShieldCheck className="h-4 w-4 text-[#f48d16]" /> Proposal awaiting review
               </p>
-              <p className="mt-1 text-[13px] leading-[1.6] text-muted-foreground">
-                {detail.data.pendingProposal.summary} · +{detail.data.pendingProposal.additions} / −
+              <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-secondary)]">
+                {detail.data.pendingProposal.summary} · +
+                {detail.data.pendingProposal.additions} / −
                 {detail.data.pendingProposal.deletions} lines · created{" "}
                 {relativeTime(detail.data.pendingProposal.createdAt)}
               </p>
@@ -209,29 +235,184 @@ export default function RepositoryDetailPage() {
             <Link to={`/dashboard/reviews/${detail.data.pendingProposal.runId}`}>
               <Button size="sm">Review diff</Button>
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <div>
-              <CardTitle>Documentation settings</CardTitle>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Applies to automatic updates and manual runs for this repository.
-              </p>
+      <Tabs
+        active={tab}
+        onChange={(value) => setTab(value as Tab)}
+        tabs={[
+          { id: "overview", label: "Overview" },
+          { id: "runs", label: "Runs", count: runs.length },
+          { id: "settings", label: "Settings" },
+        ]}
+      />
+
+      <div key={tab} className="content-swap">
+        {tab === "overview" ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <InfoTile
+                label="Last processed commit"
+                value={shortSha(repository.lastProcessedCommitSha)}
+                mono
+              />
+              <InfoTile
+                label="Documentation state"
+                value={repository.documentationStatus.toLowerCase().replaceAll("_", " ")}
+              />
+              <InfoTile label="README path" value={repository.settings.readmePath} mono />
+              <InfoTile
+                label="Target branch"
+                value={repository.settings.targetBranch ?? repository.defaultBranch}
+                mono
+              />
             </div>
-            <a
-              href={repository.readmeUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
-            >
-              Open README <ExternalLink className="h-3 w-3" />
-            </a>
-          </CardHeader>
-          <CardContent>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Panel>
+                <PanelTitle
+                  title="Documentation settings"
+                  hint="Applies to automatic updates and manual runs"
+                  icon={Settings2}
+                  action={
+                    <Button variant="ghost" size="sm" onClick={() => setTab("settings")}>
+                      Edit
+                    </Button>
+                  }
+                />
+                <dl className="space-y-2 text-[12px]">
+                  <Row label="README file" value={repository.settings.readmePath} mono />
+                  <Row
+                    label="Target branch"
+                    value={repository.settings.targetBranch ?? repository.defaultBranch}
+                    mono
+                  />
+                  <Row label="Update mode" value={repository.settings.updateMode} />
+                  <Row
+                    label="Automation"
+                    value={repository.settings.automationEnabled ? "Enabled" : "Disabled"}
+                  />
+                  <Row
+                    label="Ignored paths"
+                    value={
+                      repository.settings.ignoredPaths.length
+                        ? repository.settings.ignoredPaths.join(", ")
+                        : "None"
+                    }
+                    mono
+                  />
+                  <Row
+                    label="Commit template"
+                    value={repository.settings.commitMessageTemplate}
+                    mono
+                  />
+                </dl>
+                <a
+                  href={repository.readmeUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="mt-4 inline-flex items-center gap-1 text-[12px] font-medium text-[#0000ee] hover:underline dark:text-[#8ea2ff]"
+                >
+                  Open README on GitHub <ExternalLink className="h-3 w-3" />
+                </a>
+              </Panel>
+
+              <Panel>
+                <PanelTitle title="Repository metadata" hint="Persisted connection record" />
+                <dl className="space-y-2 text-[12px]">
+                  <Row label="GitHub repository id" value={String(repository.githubRepoId)} mono />
+                  <Row label="Connected" value={formatDate(repository.createdAt)} />
+                  <Row label="Updated" value={formatDate(repository.updatedAt)} />
+                  <Row
+                    label="Last processed commit"
+                    value={repository.lastProcessedCommitSha ?? "—"}
+                    mono
+                  />
+                  <Row
+                    label="Last successful update"
+                    value={
+                      repository.lastSuccessfulRunAt
+                        ? formatDate(repository.lastSuccessfulRunAt)
+                        : "Never"
+                    }
+                  />
+                </dl>
+              </Panel>
+            </div>
+
+            <Panel>
+              <PanelTitle
+                title="Recent runs"
+                hint="Latest documentation operations for this repository"
+                icon={ListTodo}
+                action={
+                  <Button variant="ghost" size="sm" onClick={() => setTab("runs")}>
+                    View all
+                  </Button>
+                }
+              />
+              {runs.length === 0 ? (
+                <p className="text-[12px] text-[var(--text-secondary)]">
+                  No runs yet. Generate a README to create the first documentation run.
+                </p>
+              ) : (
+                <div className="overflow-hidden rounded-[14px] border border-[var(--border-soft)]">
+                  {runs.slice(0, 4).map((run) => (
+                    <RunRow key={run.id} run={run} repositoryId={repository.id} />
+                  ))}
+                </div>
+              )}
+            </Panel>
+          </div>
+        ) : null}
+
+        {tab === "runs" ? (
+          <Panel>
+            <PanelTitle
+              title="Run history"
+              hint={`${runs.length} recent operations`}
+              icon={ListTodo}
+              action={
+                <Link to={`/dashboard/activity?repositoryId=${repository.id}`}>
+                  <Button variant="ghost" size="sm">
+                    Open activity
+                  </Button>
+                </Link>
+              }
+            />
+            {runs.length === 0 ? (
+              <p className="text-[12px] text-[var(--text-secondary)]">
+                Generate a README, run an update, or clean up the README to create a run.
+              </p>
+            ) : (
+              <div className="overflow-hidden rounded-[14px] border border-[var(--border-soft)]">
+                {runs.map((run) => (
+                  <RunRow key={run.id} run={run} repositoryId={repository.id} />
+                ))}
+              </div>
+            )}
+          </Panel>
+        ) : null}
+
+        {tab === "settings" ? (
+          <Panel>
+            <PanelTitle
+              title="Documentation settings"
+              hint="Applies to automatic updates and manual runs for this repository"
+              icon={Settings2}
+              action={
+                <a
+                  href={repository.readmeUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1 text-[12px] text-[#0000ee] hover:underline dark:text-[#8ea2ff]"
+                >
+                  Open README <ExternalLink className="h-3 w-3" />
+                </a>
+              }
+            />
             {form ? (
               <form
                 className="space-y-4"
@@ -307,10 +488,12 @@ export default function RepositoryDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-muted/50 p-3">
+                <div className="theme-soft flex items-start justify-between gap-4 rounded-[12px] border p-3">
                   <div>
-                    <p className="text-sm font-medium">Automation enabled</p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                    <p className="text-[13px] font-medium text-[var(--text-primary)]">
+                      Automation enabled
+                    </p>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-secondary)]">
                       When off, webhook-triggered runs are skipped. Manual actions still work.
                     </p>
                   </div>
@@ -322,7 +505,10 @@ export default function RepositoryDetailPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="ignoredPaths" hint="One glob or path prefix per line; matching files are never analysed">
+                  <Label
+                    htmlFor="ignoredPaths"
+                    hint="One glob or path prefix per line; matching files are never analysed"
+                  >
                     Ignored paths
                   </Label>
                   <Textarea
@@ -343,11 +529,11 @@ export default function RepositoryDetailPage() {
                     {SECTION_KEYS.map((key) => (
                       <label
                         key={key}
-                        className="flex items-center gap-2 rounded-sm border border-border px-2.5 py-1.5 text-[13px]"
+                        className="flex items-center gap-2 rounded-[8px] border border-[var(--border-soft)] px-2.5 py-1.5 text-[12px]"
                       >
                         <input
                           type="checkbox"
-                          className="h-3 w-3 accent-[rgb(var(--accent))]"
+                          className="h-3 w-3 accent-[#f48d16]"
                           checked={form.maintainedSections.includes(key)}
                           onChange={() => toggleSection(key)}
                         />
@@ -357,8 +543,8 @@ export default function RepositoryDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-                  <p className="text-xs leading-relaxed text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 border-t border-[var(--border-soft)] pt-3">
+                  <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">
                     Changes to the branch are validated against GitHub.
                   </p>
                   <Button type="submit" size="sm" loading={save.isPending}>
@@ -369,59 +555,41 @@ export default function RepositoryDetailPage() {
             ) : (
               <Skeleton className="h-64 w-full" />
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent runs</CardTitle>
-              <p className="text-sm leading-relaxed text-muted-foreground">Latest ten documentation operations</p>
-            </div>
-            <Link to={`/dashboard/activity?repositoryId=${repository.id}`} className="text-xs text-accent hover:underline">
-              All activity
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            {detail.data && detail.data.runs.length > 0 ? (
-              detail.data.runs.map((run) => (
-                <RunRow key={run.id} run={run} repositoryId={repository.id} />
-              ))
-            ) : (
-              <div className="p-5">
-                <EmptyState
-                  icon={<GitBranch className="h-6 w-6" />}
-                  title="No runs yet"
-                  description="Generate a README to create the first documentation run."
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </Panel>
+        ) : null}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Repository metadata</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-          <InfoTile label="GitHub repository id" value={String(repository.githubRepoId)} mono />
-          <InfoTile label="Connected" value={formatDate(repository.createdAt)} />
-          <InfoTile label="Last processed commit" value={repository.lastProcessedCommitSha ?? "—"} mono />
-          <InfoTile label="Commit template" value={repository.settings.commitMessageTemplate} mono />
-        </CardContent>
-      </Card>
     </div>
   );
 }
 
-function InfoTile({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+function InfoTile({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-border bg-muted/40 p-3.5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">
+    <div className="card p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-secondary)]">
         {label}
       </p>
-      <p className={`mt-1 break-all text-sm ${mono ? "font-mono text-[13px]" : ""}`}>{value}</p>
+      <p className={`mt-1 break-all text-[13px] text-[var(--text-primary)] ${mono ? "font-mono" : ""}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function Row({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b border-[var(--border-soft)] pb-2 last:border-b-0">
+      <dt className="shrink-0 text-[var(--text-secondary)]">{label}</dt>
+      <dd className={`break-all text-right text-[var(--text-primary)] ${mono ? "font-mono text-[11px]" : ""}`}>
+        {value}
+      </dd>
     </div>
   );
 }

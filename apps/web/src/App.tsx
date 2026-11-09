@@ -9,6 +9,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 import OverviewPage from "./pages/OverviewPage";
 import RepositoriesPage from "./pages/RepositoriesPage";
 import RepositoryDetailPage from "./pages/RepositoryDetailPage";
+import DocumentationPage from "./pages/DocumentationPage";
+import PatchesPage from "./pages/PatchesPage";
+import JobsPage from "./pages/JobsPage";
 import ReviewPage from "./pages/ReviewPage";
 import ActivityPage from "./pages/ActivityPage";
 import ActivityDetailPage from "./pages/ActivityDetailPage";
@@ -27,6 +30,9 @@ export default function App() {
           <Route path="/dashboard" element={<OverviewPage />} />
           <Route path="/dashboard/repositories" element={<RepositoriesPage />} />
           <Route path="/dashboard/repositories/:id" element={<RepositoryDetailPage />} />
+          <Route path="/dashboard/docs" element={<DocumentationPage />} />
+          <Route path="/dashboard/patches" element={<PatchesPage />} />
+          <Route path="/dashboard/jobs" element={<JobsPage />} />
           <Route path="/dashboard/reviews/:runId" element={<ReviewPage />} />
           <Route path="/dashboard/activity" element={<ActivityPage />} />
           <Route path="/dashboard/activity/:logId" element={<ActivityDetailPage />} />

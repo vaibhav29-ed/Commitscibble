@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { RepoSettings } from "@commitscibble/shared";
-import { api, ApiError } from "./api";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { RepoSettings, RunSummary } from "@commitscibble/shared";
+import { api, ApiError, type ConnectedRepositoryView } from "./api";
 import { useToast } from "./toast";
 
 export function useMe() {
@@ -35,6 +35,39 @@ export function useRepository(id: string | undefined) {
       const active = data?.runs.some((run) => ["QUEUED", "RUNNING", "RETRYING"].includes(run.status));
       return active ? 4000 : 20_000;
     },
+  });
+}
+
+export interface RepositoryRunsResult {
+  repository: ConnectedRepositoryView;
+  runs: RunSummary[];
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+}
+
+/**
+ * Runs are only exposed per repository by the API, so the jobs screen fans out
+ * across the connected repositories the workspace already knows about.
+ */
+export function useRepositoryRuns(repositories: ConnectedRepositoryView[]) {
+  const results = useQueries({
+    queries: repositories.map((repository) => ({
+      queryKey: ["repository-runs", repository.id],
+      queryFn: () => api.listRuns(repository.id, 1, 20),
+      refetchInterval: 10_000,
+    })),
+  });
+
+  return repositories.map((repository, index) => {
+    const result = results[index];
+    return {
+      repository,
+      runs: result?.data?.items ?? [],
+      isLoading: result?.isPending ?? true,
+      isError: result?.isError ?? false,
+      error: result?.error ?? null,
+    } satisfies RepositoryRunsResult;
   });
 }
 

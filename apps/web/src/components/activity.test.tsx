@@ -19,9 +19,9 @@ describe("DiffViewer", () => {
     ].join("\n");
 
     render(<DiffViewer diff={diff} />);
-    expect(screen.getByText("-pnpm install")).toHaveClass("bg-danger/10");
-    expect(screen.getByText("+pnpm install --frozen-lockfile")).toHaveClass("bg-success/10");
-    expect(screen.getByText("@@ -1,2 +1,2 @@")).toHaveClass("bg-muted/60");
+    expect(screen.getByText("-pnpm install")).toHaveClass("diff-del");
+    expect(screen.getByText("+pnpm install --frozen-lockfile")).toHaveClass("diff-add");
+    expect(screen.getByText("@@ -1,2 +1,2 @@")).toHaveClass("bg-[var(--surface-3)]");
   });
 
   it("explains that no changes were proposed", () => {

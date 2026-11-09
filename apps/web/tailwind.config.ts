@@ -64,6 +64,7 @@ export default {
         content: "1280px",
       },
       boxShadow: {
+        xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
         subtle: "0 1px 2px rgb(43 38 34 / 0.04), 0 8px 24px -18px rgb(43 38 34 / 0.25)",
         card: "0 1px 2px #2b26220a, 0 12px 32px -20px #2b262247",
         overlay: "0 2px 6px #2b26220f, 0 32px 72px -32px #2b262266",

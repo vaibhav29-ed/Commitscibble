@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   type ButtonHTMLAttributes,
+  type ComponentType,
   type CSSProperties,
   type HTMLAttributes,
   type InputHTMLAttributes,
@@ -12,47 +13,70 @@ import {
 import { AlertCircle, Check, Copy, Loader2, X } from "lucide-react";
 import { cn } from "../lib/cn";
 
+export type IconType = ComponentType<{ className?: string }>;
+
 /* -------------------------------------------------------------------------- */
 /* Button                                                                     */
 /* -------------------------------------------------------------------------- */
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
-type ButtonSize = "sm" | "md" | "icon";
+type ButtonVariant =
+  | "primary"
+  | "accent"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "danger"
+  | "success"
+  | "light"
+  | "glass";
+type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "border border-black/10 bg-primary text-primary-foreground shadow-dark-inset hover:brightness-110 active:brightness-95 dark:border-white/10",
-  secondary: "border border-border bg-muted text-foreground hover:bg-muted/70",
+    "bg-[#251f19] text-white hover:bg-[#3a3128] shadow-[0_6px_16px_rgba(37,31,25,0.18)] dark:bg-[#f5f2ec] dark:text-[#251f19] dark:hover:bg-white",
+  accent:
+    "bg-[#f48d16] text-white hover:bg-[#e07d0c] shadow-[0_6px_16px_rgba(244,141,22,0.28)]",
+  secondary:
+    "bg-[#eeede6] text-[#251f19] hover:bg-[#e3e1d7] dark:bg-[#2a251f] dark:text-[#f5f2ec] dark:hover:bg-[#352e27]",
   outline:
-    "border border-border bg-card text-foreground shadow-reference-inset hover:border-foreground/20 hover:bg-muted/70",
-  ghost: "border border-transparent text-foreground hover:bg-muted",
-  danger:
-    "border border-black/10 bg-danger text-white hover:brightness-110 dark:border-white/10 dark:text-[#171717]",
+    "theme-surface border text-[var(--text-primary)] hover:border-[var(--border-strong)]",
+  ghost:
+    "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[#eeede6] dark:hover:bg-[#2a251f]",
+  danger: "bg-rose-700 text-white hover:bg-rose-800",
+  success: "bg-emerald-700 text-white hover:bg-emerald-800",
+  light: "bg-white text-[#251f19] hover:bg-white/90 shadow-[0_10px_24px_rgba(37,31,25,0.2)]",
+  glass:
+    "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25",
 };
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
-  sm: "h-8 px-3.5 text-xs gap-1.5",
-  md: "h-10 px-5 text-sm gap-2",
-  icon: "h-10 w-10 justify-center",
+  sm: "px-2.5 py-1.5 text-[11px] rounded-[8px] gap-1.5",
+  md: "px-3.5 py-2 text-[12px] rounded-[10px] gap-1.5",
+  lg: "px-5 py-3 text-[14px] rounded-[10px] gap-2",
+  icon: "h-8 w-8 justify-center rounded-[9px]",
 };
 
 export function Button({
   variant = "primary",
   size = "md",
   loading = false,
+  icon: Icon,
   className,
   children,
   disabled,
+  type = "button",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
+  icon?: IconType;
 }) {
   return (
     <button
+      type={type}
       className={cn(
-        "inline-flex select-none items-center rounded-md font-medium tracking-normal transition-all duration-150 ease-smooth active:scale-[0.985] motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex select-none items-center justify-center whitespace-nowrap font-medium tracking-normal transition-all duration-200 ease-smooth active:scale-[0.985] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-45",
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
         className,
@@ -60,7 +84,11 @@ export function Button({
       disabled={disabled || loading}
       {...props}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+      {loading ? (
+        <Loader2 className={cn("framer-spinner", size === "lg" ? "h-4 w-4" : "h-3.5 w-3.5")} aria-hidden />
+      ) : Icon ? (
+        <Icon className={size === "lg" ? "h-4 w-4" : "h-3.5 w-3.5"} />
+      ) : null}
       {children}
     </button>
   );
@@ -76,43 +104,128 @@ export function Card({
   ...props
 }: { className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("surface overflow-hidden", className)} {...props}>
+    <div className={cn("card overflow-hidden p-0", className)} {...props}>
       {children}
     </div>
   );
 }
 
-/**
- * Card headers use a tinted band and a hairline rule, the same treatment the
- * app shell gives its grouped sidebar sections and inset panels.
- */
 export function CardHeader({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cn("flex flex-col gap-1 border-b border-border bg-muted/40 p-5", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-1 border-b border-[var(--border-soft)] bg-[var(--panel-soft)] p-5",
+        className,
+      )}
+    >
       {children}
     </div>
   );
 }
 
 export function CardTitle({ className, children }: { className?: string; children: ReactNode }) {
-  return <h2 className={cn("text-[15px] font-semibold leading-snug tracking-normal", className)}>{children}</h2>;
+  return <h2 className={cn("dash-h3 text-[15px]", className)}>{children}</h2>;
 }
 
 export function CardDescription({ className, children }: { className?: string; children: ReactNode }) {
-  return <p className={cn("text-[13px] leading-[1.6] text-muted-foreground", className)}>{children}</p>;
+  return <p className={cn("text-[12px] leading-[1.6] text-[var(--text-secondary)]", className)}>{children}</p>;
 }
 
 export function CardContent({ className, children }: { className?: string; children: ReactNode }) {
   return <div className={cn("p-5", className)}>{children}</div>;
 }
 
+export function Panel({
+  children,
+  className,
+  id,
+}: {
+  children: ReactNode;
+  className?: string;
+  id?: string;
+}) {
+  return (
+    <section id={id} className={cn("card p-5 sm:p-6", className)}>
+      {children}
+    </section>
+  );
+}
+
+export function PanelTitle({
+  title,
+  hint,
+  icon: Icon,
+  action,
+}: {
+  title: ReactNode;
+  hint?: string;
+  icon?: IconType;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="flex items-start gap-2.5">
+        {Icon ? <Icon className="mt-1 h-4 w-4 shrink-0 text-[#f48d16]" /> : null}
+        <div>
+          <h2 className="dash-h3">{title}</h2>
+          {hint ? <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">{hint}</p> : null}
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+export function Toolbar({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "glass-panel mb-5 flex flex-wrap items-center gap-2 rounded-[16px] border p-3 shadow-[var(--shadow-card)]",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+const TILE_TONES = {
+  orange: "bg-[#f48d16] text-white shadow-[0_6px_14px_rgba(244,141,22,0.28)]",
+  dark: "bg-[#251f19] text-[#f48d16] shadow-[0_6px_14px_rgba(37,31,25,0.2)]",
+  blue: "bg-[#0000ee] text-white shadow-[0_6px_14px_rgba(0,0,238,0.22)]",
+  green: "bg-[#15803d] text-white shadow-[0_6px_14px_rgba(21,128,61,0.22)]",
+  rose: "bg-rose-600 text-white shadow-[0_6px_14px_rgba(225,29,72,0.22)]",
+} as const;
+
+export function IconTile({
+  icon: Icon,
+  tone = "orange",
+  size = "md",
+}: {
+  icon: IconType;
+  tone?: keyof typeof TILE_TONES;
+  size?: "sm" | "md";
+}) {
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center",
+        size === "sm" ? "h-8 w-8 rounded-[10px]" : "h-10 w-10 rounded-[12px]",
+        TILE_TONES[tone],
+      )}
+    >
+      <Icon className={size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4"} />
+    </span>
+  );
+}
+
 /**
- * Shared dashboard page header: small-caps eyebrow, title, optional prose,
- * optional meta row (badges), and an actions cluster aligned to the same
- * 4/8/12px rhythm used by the shell.
+ * Shared dashboard page header: pill eyebrow, measured title, optional prose,
+ * optional meta row (badges/pills) and a right-aligned action cluster.
  */
 export function PageHeader({
   eyebrow,
+  icon: Icon,
   title,
   description,
   meta,
@@ -120,6 +233,7 @@ export function PageHeader({
   className,
 }: {
   eyebrow?: string;
+  icon?: IconType;
   title: ReactNode;
   description?: string;
   meta?: ReactNode;
@@ -129,25 +243,26 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5",
+        "mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end",
         className,
       )}
     >
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         {eyebrow ? (
-          <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground/80">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] bg-[#eeede6] px-2.5 py-1 text-[11px] font-medium text-[#251f19] dark:bg-[#2a251f] dark:text-[#f5f2ec]">
+            {Icon ? <Icon className="h-3.5 w-3.5 text-[#f48d16]" /> : null}
             {eyebrow}
-          </p>
+          </div>
         ) : null}
-        <h1 className="type-page-title mt-1.5 text-balance">{title}</h1>
+        <h1 className="dash-title text-balance">{title}</h1>
         {description ? (
-          <p className="mt-1.5 max-w-2xl text-[15px] leading-[1.65] text-muted-foreground">
+          <p className="mt-2 max-w-[600px] text-[14px] leading-relaxed text-[var(--text-secondary)]">
             {description}
           </p>
         ) : null}
-        {meta ? <div className="mt-2 flex flex-wrap items-center gap-2">{meta}</div> : null}
+        {meta ? <div className="mt-3 flex flex-wrap items-center gap-2">{meta}</div> : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
     </div>
   );
 }
@@ -157,15 +272,15 @@ export function PageHeader({
 /* -------------------------------------------------------------------------- */
 
 type BadgeTone = "neutral" | "success" | "danger" | "warning" | "accent" | "outline";
+type Tone = "neutral" | "success" | "danger" | "warn" | "info";
 
 const BADGE_TONES: Record<BadgeTone, string> = {
-  neutral: "bg-muted text-muted-foreground border-border",
-  success: "bg-success/10 text-success border-success/30",
-  danger: "bg-danger/10 text-danger border-danger/30",
-  warning: "bg-warning/10 text-warning border-warning/30",
-  accent:
-    "bg-brand-50 text-brand-700 border-brand-200 dark:bg-brand-500/15 dark:text-brand-300 dark:border-brand-500/30",
-  outline: "bg-transparent text-foreground border-border",
+  neutral: "tone-neutral",
+  success: "tone-success",
+  danger: "tone-danger",
+  warning: "tone-warn",
+  accent: "tone-warn",
+  outline: "bg-transparent text-[var(--text-secondary)] border border-[var(--border-soft)]",
 };
 
 export function Badge({
@@ -180,7 +295,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-2xs font-medium uppercase tracking-[0.06em] transition-colors duration-200",
+        "badge-pill inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium",
         BADGE_TONES[tone],
         className,
       )}
@@ -190,9 +305,34 @@ export function Badge({
   );
 }
 
+export function Pill({
+  tone = "neutral",
+  icon: Icon,
+  children,
+  className,
+}: {
+  tone?: Tone;
+  icon?: IconType;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "badge-pill inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium",
+        `tone-${tone}`,
+        className,
+      )}
+    >
+      {Icon ? <Icon className="h-3 w-3" /> : null}
+      {children}
+    </span>
+  );
+}
+
 const STATUS_TONES: Record<string, { tone: BadgeTone; label: string }> = {
-  QUEUED: { tone: "neutral", label: "Queued" },
-  RUNNING: { tone: "accent", label: "Running" },
+  QUEUED: { tone: "outline", label: "Queued" },
+  RUNNING: { tone: "warning", label: "Running" },
   SUCCEEDED: { tone: "success", label: "Succeeded" },
   FAILED: { tone: "danger", label: "Failed" },
   RETRYING: { tone: "warning", label: "Retrying" },
@@ -214,10 +354,22 @@ const STATUS_TONES: Record<string, { tone: BadgeTone; label: string }> = {
 
 export function StatusPill({ value, className }: { value: string; className?: string }) {
   const entry = STATUS_TONES[value] ?? { tone: "neutral" as BadgeTone, label: value };
+  const spinning = value === "RUNNING" || value === "RETRYING";
   return (
-    <Badge tone={entry.tone} className={className}>
+    <span
+      className={cn(
+        "badge-pill inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium capitalize",
+        BADGE_TONES[entry.tone],
+        className,
+      )}
+    >
+      {spinning ? (
+        <span className="framer-spinner h-2.5 w-2.5 rounded-full border-[1.5px] border-current border-t-transparent" />
+      ) : (
+        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      )}
       {entry.label}
-    </Badge>
+    </span>
   );
 }
 
@@ -226,38 +378,16 @@ export function StatusPill({ value, className }: { value: string; className?: st
 /* -------------------------------------------------------------------------- */
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      className={cn(
-        "h-10 w-full rounded-md border border-border bg-card px-3 text-sm placeholder:text-muted-foreground/70 transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15 disabled:opacity-60",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <input className={cn("dash-input", className)} {...props} />;
 }
 
 export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      className={cn(
-        "w-full rounded-md border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground/70 transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <textarea className={cn("dash-input", className)} {...props} />;
 }
 
 export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select
-      className={cn(
-        "h-10 w-full rounded-md border border-border bg-card px-3 text-sm transition-colors focus-visible:border-accent/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/15",
-        className,
-      )}
-      {...props}
-    >
+    <select className={cn("dash-input cursor-pointer", className)} {...props}>
       {children}
     </select>
   );
@@ -274,10 +404,10 @@ export function Label({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={htmlFor} className="text-sm font-medium">
+      <label htmlFor={htmlFor} className="text-[12px] font-medium text-[var(--text-primary)]">
         {children}
       </label>
-      {hint ? <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
+      {hint ? <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">{hint}</p> : null}
     </div>
   );
 }
@@ -303,12 +433,12 @@ export function Switch({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors disabled:opacity-50",
-        checked ? "border-accent/40 bg-accent" : "border-border bg-muted",
+        checked ? "border-[#f48d16]/40 bg-[#f48d16]" : "border-[var(--border-soft)] bg-[var(--surface-3)]",
       )}
     >
       <span
         className={cn(
-          "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
+          "inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform",
           checked ? "translate-x-[18px]" : "translate-x-[3px]",
         )}
       />
@@ -321,43 +451,117 @@ export function Switch({
 /* -------------------------------------------------------------------------- */
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-muted", className)} />;
+  return <div className={cn("animate-pulse rounded-md bg-[var(--surface-3)]", className)} />;
 }
 
 export function Spinner({ className }: { className?: string }) {
-  return <Loader2 className={cn("h-4 w-4 animate-spin text-muted-foreground", className)} />;
+  return (
+    <span
+      className={cn(
+        "framer-spinner inline-block h-4 w-4 rounded-full border-2 border-[#f48d16] border-t-transparent",
+        className,
+      )}
+    />
+  );
+}
+
+export function ProgressBar({ value, className }: { value: number; className?: string }) {
+  return (
+    <div className={cn("h-1.5 overflow-hidden rounded-full bg-[var(--surface-3)]", className)}>
+      <div
+        className="progress-fill h-full rounded-full"
+        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+      />
+    </div>
+  );
+}
+
+export function CoverageRing({ value, size = 112 }: { value: number | null; size?: number }) {
+  const stroke = 10;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = value ?? 0;
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--surface-3)"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#f48d16"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference - (pct / 100) * circumference}
+          style={{ transition: "stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-[26px] font-medium leading-none text-[var(--text-primary)]">
+          {value == null ? "—" : `${value}%`}
+        </span>
+        <span className="mt-1 text-[10px] text-[var(--text-secondary)]">coverage</span>
+      </div>
+    </div>
+  );
 }
 
 export function EmptyState({
   icon,
   title,
   description,
+  body,
   action,
 }: {
-  icon?: ReactNode;
+  icon?: ReactNode | IconType;
   title: string;
-  description: string;
+  description?: string;
+  body?: string;
   action?: ReactNode;
 }) {
+  const copy = description ?? body ?? "";
+  // Lucide icons are forwardRef objects rather than plain functions, so detect
+  // both and only treat "has props" objects as already-rendered elements.
+  const isComponent =
+    typeof icon === "function" ||
+    (typeof icon === "object" &&
+      icon !== null &&
+      "$$typeof" in icon &&
+      !("props" in icon));
+  const iconNode = isComponent ? (
+    <IconTile icon={icon as IconType} tone="dark" />
+  ) : icon ? (
+    <div className="text-[var(--text-secondary)]">{icon as ReactNode}</div>
+  ) : null;
+
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card/60 px-6 py-14 text-center">
-      {icon ? <div className="text-muted-foreground">{icon}</div> : null}
-      <div className="space-y-1">
-        <p className="text-base font-medium">{title}</p>
-        <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">{description}</p>
-      </div>
-      {action}
+    <div className="card flex flex-col items-center px-6 py-10 text-center sm:py-12">
+      {iconNode}
+      <h3 className="dash-h3 mt-4">{title}</h3>
+      {copy ? (
+        <p className="mt-1.5 max-w-[420px] text-[13px] leading-relaxed text-[var(--text-secondary)]">{copy}</p>
+      ) : null}
+      {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );
 }
 
 export function InlineError({ message, requestId }: { message: string; requestId?: string }) {
   return (
-    <div className="flex items-start gap-2 rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+    <div className="flex items-start gap-2 rounded-[12px] border border-rose-500/25 bg-rose-500/5 p-3 text-[12px] text-rose-700 dark:text-rose-300">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         <p>{message}</p>
-        {requestId ? <p className="mt-1 font-mono text-2xs opacity-70">Request {requestId}</p> : null}
+        {requestId ? <p className="mt-1 font-mono text-[10px] opacity-70">Request {requestId}</p> : null}
       </div>
     </div>
   );
@@ -419,7 +623,7 @@ export function Dialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="motion-dialog-backdrop absolute inset-0 bg-black/50"
+        className="motion-dialog-backdrop absolute inset-0 bg-black/50 backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden
       />
@@ -428,18 +632,20 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="motion-dialog-panel relative z-10 w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-overlay"
+        className="motion-dialog-panel glass-panel-strong relative z-10 w-full max-w-lg rounded-[20px] border p-6 shadow-[var(--shadow-float)]"
         style={style}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold">{title}</h2>
-            {description ? <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p> : null}
+            <h2 className="dash-h3 text-[18px]">{title}</h2>
+            {description ? (
+              <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-secondary)]">{description}</p>
+            ) : null}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="flex h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)]"
             aria-label="Close dialog"
           >
             <X className="h-4 w-4" />
@@ -468,7 +674,13 @@ export function Tabs({
   className?: string;
 }) {
   return (
-    <div role="tablist" className={cn("flex flex-wrap gap-1 rounded-md bg-muted p-1", className)}>
+    <div
+      role="tablist"
+      className={cn(
+        "inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-[12px] border border-[var(--border-soft)] bg-[var(--panel-soft)] p-1 dash-scroll",
+        className,
+      )}
+    >
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -477,15 +689,22 @@ export function Tabs({
           aria-selected={active === tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            "rounded-sm px-3.5 py-1.5 text-xs font-medium transition-colors duration-150",
+            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] px-3 py-1.5 text-[12px] font-medium transition-all duration-200",
             active === tab.id
-              ? "bg-card text-foreground shadow-reference-inset"
-              : "text-muted-foreground hover:text-foreground",
+              ? "bg-[#251f19] text-white shadow-xs dark:bg-[#f5f2ec] dark:text-[#251f19]"
+              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
           )}
         >
           {tab.label}
           {tab.count !== undefined ? (
-            <span className="ml-1.5 rounded-full bg-muted px-1.5 text-2xs text-muted-foreground">
+            <span
+              className={cn(
+                "rounded-full px-1.5 text-[10px]",
+                active === tab.id
+                  ? "bg-white/20 text-white dark:bg-black/10 dark:text-[#251f19]"
+                  : "bg-[var(--surface-3)] text-[var(--text-secondary)]",
+              )}
+            >
               {tab.count}
             </span>
           ) : null}
@@ -497,8 +716,8 @@ export function Tabs({
 
 export function CheckLine({ children }: { children: ReactNode }) {
   return (
-    <li className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+    <li className="flex items-start gap-2 text-[12px] leading-relaxed text-[var(--text-secondary)]">
+      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#f48d16]" />
       <span>{children}</span>
     </li>
   );

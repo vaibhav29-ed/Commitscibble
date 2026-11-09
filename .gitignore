@@ -18,3 +18,4 @@ apps/web/dist/
 services/*/dist/
 packages/*/dist/
 *.tsbuildinfo
+.aider*
