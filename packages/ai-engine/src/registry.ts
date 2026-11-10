@@ -36,12 +36,6 @@ export interface StructuredAiResult<T> extends AiExecutionResult<T> {
   warnings: string[];
 }
 
-/**
- * Executes a structured AI request against an ordered provider list with
- * per-provider retries, bounded exponential backoff with jitter, concurrency
- * limiting, and provider fallback. Prompt/response content is never logged by
- * this layer; only provider, model, attempt, latency and a safe error code.
- */
 export class AiOrchestrator {
   private readonly options: AiOrchestratorOptions;
   private readonly semaphores = new Map<string, Semaphore>();
@@ -118,9 +112,6 @@ export class AiOrchestrator {
           } catch (error) {
             const providerError = normalizeError(error, provider.name);
             lastError = providerError;
-            // Remember whether any failure in the chain was transient so the
-            // queue knows a retry can help even when the final provider failed
-            // permanently.
             retryableFailure = retryableFailure || providerError.retryable;
             const model = providerError.model ?? provider.model;
             const latencyMs = Date.now() - startedAt;
@@ -227,7 +218,6 @@ function normalizeError(error: unknown, provider: AiProvider["name"]): AiProvide
   return new ProviderError(provider, "SERVER", "Unknown AI provider failure", { retryable: true });
 }
 
-/** Strip common JSON fencing before parsing, then enforce the output schema. */
 export function parseAndValidate<T>(
   text: string,
   schema: z.ZodType<T>,

@@ -85,9 +85,6 @@ export const aiSettingsSchema = z
   })
   .strict();
 
-/* -------------------------------------------------------------------------- */
-/* Structured AI output contracts                                             */
-/* -------------------------------------------------------------------------- */
 
 export const evidencePathSchema = z.string().trim().min(1).max(400);
 
@@ -143,9 +140,6 @@ export type SectionPatch = z.infer<typeof sectionPatchSchema>;
 export type IncrementalPatch = z.infer<typeof incrementalPatchSchema>;
 export type CleanupProposal = z.infer<typeof cleanupProposalSchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Webhook payload (only the fields we rely on are validated)                 */
-/* -------------------------------------------------------------------------- */
 
 export const pushWebhookSchema = z.object({
   ref: z.string().min(1),

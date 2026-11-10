@@ -3,11 +3,9 @@ import type { GeneratedSection } from "@commitscibble/shared";
 export interface SectionGrounding {
   key: string;
   heading: string;
-  /** Citations exactly as the model declared them, normalised for comparison. */
   declared: string[];
   verified: string[];
   unsupported: string[];
-  /** True when at least one declared citation resolves to a repository path. */
   grounded: boolean;
 }
 
@@ -16,7 +14,6 @@ export interface EvidenceAuditResult {
   unsupportedPaths: string[];
   ungroundedSections: string[];
   warnings: string[];
-  /** Corroborated problems that a single repair pass should be asked to fix. */
   feedback: string[];
   needsRepair: boolean;
   summary: string;
@@ -24,7 +21,6 @@ export interface EvidenceAuditResult {
 
 export interface EvidenceAuditOptions {
   knownPaths: Set<string>;
-  /** True when the file inventory is incomplete, which makes citations advisory. */
   inventoryTruncated?: boolean;
 }
 
@@ -40,7 +36,6 @@ function normalizeCitation(value: string): string {
     .replace(/\/+$/, "");
 }
 
-/** A citation is a path claim only when it names a file or a directory. */
 function isPathClaim(citation: string): boolean {
   return citation.includes("/") || /\.[a-z0-9]{1,12}$/i.test(citation);
 }
@@ -56,14 +51,6 @@ function buildDirectoryIndex(paths: Iterable<string>): Set<string> {
   return directories;
 }
 
-/**
- * Verify the evidence each AI-generated section claims. The model is asked to
- * cite repository paths, so a citation that does not exist is either an
- * invented file or a hallucinated claim: both are worth surfacing before a
- * proposal is created. Directory citations resolve against the inventory, and
- * free-form labels (for example "license information") are not treated as
- * path claims.
- */
 export function auditEvidenceGrounding(
   sections: GeneratedSection[],
   options: EvidenceAuditOptions,

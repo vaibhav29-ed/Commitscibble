@@ -8,7 +8,6 @@ export interface GitHubAppCredentials {
   privateKey: string;
 }
 
-/** Environment files often store PEM keys with literal `\n` sequences. */
 export function normalizePrivateKey(value: string): string {
   const trimmed = value.trim();
   return trimmed.includes("\\n") ? trimmed.replace(/\\n/g, "\n") : trimmed;
@@ -22,10 +21,6 @@ function base64Url(value: string): string {
   return Buffer.from(value, "utf8").toString("base64url");
 }
 
-/**
- * GitHub App JWTs must be RS256, issued at most 60s in the past, and expire
- * within 10 minutes. The 9 minute expiry leaves room for clock skew.
- */
 export function createAppJwt(credentials: GitHubAppCredentials, nowMs = Date.now()): string {
   const issuedAt = Math.floor(nowMs / 1000) - 60;
   const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
@@ -51,11 +46,6 @@ export function clearInstallationTokenCache(): void {
   tokenCache.clear();
 }
 
-/**
- * Exchanges the App JWT for an installation access token. Tokens are cached
- * until one minute before expiry so a worker burst does not mint a token per
- * API call. Shared across processes' clients because the cache is module-level.
- */
 export async function getInstallationToken(options: {
   appId: string;
   privateKey: string;

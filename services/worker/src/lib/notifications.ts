@@ -12,11 +12,6 @@ import {
 } from "@commitscibble/persistence";
 import type { WorkerDeps } from "./context.js";
 
-/**
- * Email notifications are best-effort. Every helper resolves a recipient,
- * delegates delivery to the injected sender and swallows any failure: a mail
- * problem must never change the outcome of a documentation run.
- */
 
 async function recipientFor(userId: DocumentationRunDocument["userId"]): Promise<string | null> {
   const user = await User.findById(userId).select("email githubLogin");

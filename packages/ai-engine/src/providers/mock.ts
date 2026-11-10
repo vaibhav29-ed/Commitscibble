@@ -1,10 +1,5 @@
 import type { AiJsonRequest, AiProvider, AiRawResponse } from "../types.js";
 
-/**
- * Development-only provider. It is registered exclusively when
- * `AI_ALLOW_MOCK=true` and NODE_ENV is not production. Its output is visibly
- * labelled so it can never be mistaken for repository-derived documentation.
- */
 export class MockProvider implements AiProvider {
   readonly name = "mock" as const;
   readonly model = "mock-documentation-v1";

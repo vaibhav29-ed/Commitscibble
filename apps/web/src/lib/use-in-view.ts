@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 interface UseInViewOptions {
-  /** Stop observing after the element first enters the viewport. */
   once?: boolean;
   rootMargin?: string;
   threshold?: number;
 }
 
-/**
- * Tracks whether an element is in the viewport. The fallback keeps motion
- * usable in environments without IntersectionObserver (including tests).
- */
 export function useInView<T extends Element>({
   once = false,
   rootMargin = "0px 0px -12% 0px",

@@ -33,10 +33,6 @@ function isReadme(path: string): boolean {
   return /(^|\/)readme(\.(md|markdown|mdx))?$/i.test(path);
 }
 
-/**
- * Deterministically select and read repository files for analysis. Read failures
- * are surfaced instead of silently shrinking the evidence set.
- */
 export async function buildRepositorySnapshot(
   source: SnapshotSource,
   entries: SnapshotTreeEntry[],
@@ -110,7 +106,6 @@ export async function buildRepositorySnapshot(
   };
 }
 
-/** In-memory source used by tests and local fixtures. */
 export function createMemorySource(files: Record<string, string>): SnapshotSource {
   return {
     async readFile(path: string): Promise<string | null> {

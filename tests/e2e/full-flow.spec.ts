@@ -1,13 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-/**
- * Authenticated end-to-end flow. It needs a running API, worker, MongoDB and
- * Redis plus a GitHub API stub, so it only runs when E2E_LIVE=1 and
- * E2E_BASE_URL point at a prepared environment. See docs/deployment.md.
- *
- * Without those prerequisites the test is skipped rather than faked, so the
- * default suite never pretends the pipeline was exercised.
- */
 const live = process.env.E2E_LIVE === "1";
 
 test.describe("documentation lifecycle", () => {

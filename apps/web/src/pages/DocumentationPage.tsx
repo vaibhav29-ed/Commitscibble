@@ -30,11 +30,6 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "NONE", label: "No docs" },
 ];
 
-/**
- * Documentation overview backed by the persisted repository records. The API
- * exposes documentation state per repository (status, last successful update,
- * README URL, pending proposal); this screen does not invent document bodies.
- */
 export default function DocumentationPage() {
   const repositories = useRepositories();
   const [filter, setFilter] = useState<Filter>("all");

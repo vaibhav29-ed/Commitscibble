@@ -18,14 +18,12 @@ export const IntegrationsFooterSection: FC<IntegrationsFooterSectionProps> = ({ 
   };
 
   return (
-    /* Editorial Dark Footer */
     <footer className="w-full pt-8 pb-10 px-3 sm:px-6">
       <div
         className="max-w-[1240px] mx-auto rounded-[28px] p-8 sm:p-14 text-white shadow-[0_20px_50px_rgba(37,31,25,0.22)]"
         style={{ backgroundColor: "#251f19" }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pb-12 border-b border-white/10">
-          {/* Brand & Newsletter Column */}
           <div className="lg:col-span-5">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-8 h-8 rounded-[8px] bg-white/10 flex items-center justify-center p-1">
@@ -44,7 +42,6 @@ export const IntegrationsFooterSection: FC<IntegrationsFooterSectionProps> = ({ 
               MongoDB, and Redis background workers.
             </p>
 
-            {/* Newsletter Form */}
             <form onSubmit={handleSubscribe} className="max-w-[360px]">
               {subscribed ? (
                 <div className="p-3 rounded-[10px] bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-[12px] flex items-center gap-2">
@@ -74,7 +71,6 @@ export const IntegrationsFooterSection: FC<IntegrationsFooterSectionProps> = ({ 
             </form>
           </div>
 
-          {/* Sitemap Columns */}
           <div className="lg:col-span-7 grid grid-cols-2 gap-8">
             <div>
               <div className="text-[12px] font-medium text-white mb-4">Platform</div>
@@ -124,7 +120,6 @@ export const IntegrationsFooterSection: FC<IntegrationsFooterSectionProps> = ({ 
           </div>
         </div>
 
-        {/* Bottom Legal & Copyright */}
         <div className="pt-8 flex items-center justify-between gap-4 text-[12px] text-white/50">
           <div>© {new Date().getFullYear()} CommitScibble AI. All rights reserved.</div>
         </div>

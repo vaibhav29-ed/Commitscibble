@@ -1,7 +1,3 @@
-# Render blueprint for the API, background worker and managed Redis.
-# MongoDB Atlas, Convex and the Vercel frontend are configured separately
-# (see docs/deployment.md). Secrets live in the `commitscibble-secrets`
-# environment group and are never committed.
 services:
   - type: redis
     name: commitscibble-redis

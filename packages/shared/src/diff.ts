@@ -3,14 +3,11 @@ export type DiffOpType = "equal" | "insert" | "delete";
 export interface DiffOp {
   type: DiffOpType;
   text: string;
-  /** 1-based line number in the old document before this op was applied. */
   oldStart: number;
-  /** 1-based line number in the new document before this op was applied. */
   newStart: number;
 }
 
 export function splitLines(text: string): string[] {
-  // Avoid producing a trailing empty line for documents ending in a newline.
   const normalized = text.replace(/\r\n/g, "\n");
   if (normalized === "") return [];
   const lines = normalized.split("\n");
@@ -175,7 +172,6 @@ export function diffStats(
   };
 }
 
-/** Extract only the added/removed lines from a unified diff (used by the UI). */
 export function summarizeDiff(diff: string): string[] {
   return splitLines(diff).filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line));
 }

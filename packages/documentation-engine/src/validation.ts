@@ -25,7 +25,6 @@ export interface ValidationResult {
 export interface ValidateReadmeOptions {
   analysis: RepositoryAnalysis;
   knownPaths: Set<string>;
-  /** True when the file inventory is incomplete, which downgrades path checks. */
   inventoryTruncated?: boolean;
   readmePath?: string;
 }
@@ -272,10 +271,6 @@ export interface CleanupGuardResult {
   changed: boolean;
 }
 
-/**
- * Cleanup is only allowed to restructure a README, never to lose verified
- * instructions. This guard blocks destructive cleanups and reports cosmetic ones.
- */
 export function guardCleanup(
   original: string,
   cleaned: string,

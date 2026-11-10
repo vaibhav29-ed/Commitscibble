@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { JobQueue, queueJobId } from "./queue.js";
 
-// Port 1 is never a Redis server, so every command must fail fast.
 const UNREACHABLE_REDIS = "redis://127.0.0.1:1";
 
 const job = {

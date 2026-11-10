@@ -64,7 +64,6 @@ function rawRequestBody(req: Request): Buffer | string {
   if (Buffer.isBuffer(req.body)) return req.body;
   if (typeof req.body === "string") return req.body;
   if (req.body && typeof req.body === "object") {
-    // A JSON parser ran before the raw handler: signature cannot be trusted.
     throw new AppError(
       ERROR_CODES.INTERNAL_ERROR,
       "Webhook body was parsed before signature verification",

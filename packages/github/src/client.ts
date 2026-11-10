@@ -157,11 +157,6 @@ export class GitHubError extends AppError {
 
 const MAX_ATTEMPTS = 3;
 
-/**
- * Minimal, dependency-free client for the GitHub REST API used by CommitScibble.
- * All responses that drive documentation output are schema validated so a
- * malformed upstream payload cannot silently become a wrong README claim.
- */
 export class GitHubClient {
   private readonly token: string;
   private readonly baseUrl: string;
@@ -369,7 +364,6 @@ export class GitHubClient {
     );
   }
 
-  /** Installation ids the user has granted, used to verify install callbacks. */
   async listUserInstallations(): Promise<number[]> {
     const parsed = await this.request(
       "/user/installations?per_page=100",
@@ -513,7 +507,6 @@ function encodePath(path: string): string {
   return path.split("/").map(encodeURIComponent).join("/");
 }
 
-/** Revoke an OAuth app token (used when a user disconnects the integration). */
 export async function revokeGitHubOAuthToken(options: {
   clientId: string;
   clientSecret: string;

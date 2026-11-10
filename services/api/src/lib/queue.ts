@@ -23,11 +23,6 @@ export interface WebhookJobData {
 const ENQUEUE_TIMEOUT_MS = 5_000;
 const READY_TIMEOUT_MS = 3_000;
 
-/**
- * Bounds every queue write so an unresponsive Redis can never hang an HTTP
- * request. The underlying command keeps a rejection handler attached, so a late
- * failure cannot surface as an unhandled rejection.
- */
 async function withTimeout<T>(operation: Promise<T>, timeoutMs = ENQUEUE_TIMEOUT_MS): Promise<T> {
   return await new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
@@ -47,11 +42,6 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs = ENQUEUE_TIMEOUT
   });
 }
 
-/**
- * BullMQ rejects custom job ids containing ":" because the id is embedded in
- * the Redis key (`bull:<queue>:<id>`). Build every id through this helper so a
- * caller cannot reintroduce the "Custom Id cannot contain :" failure.
- */
 export function queueJobId(prefix: "run" | "apply" | "webhook" | "outbox", id: string | number): string {
   return `${prefix}-${id}`;
 }
@@ -73,10 +63,6 @@ function jobNameFor(operation: OperationType): string {
   }
 }
 
-/**
- * BullMQ producer. Connections are created lazily so importing the API (for
- * tests or tooling) does not require a running Redis.
- */
 export class JobQueue {
   private redis: IORedis | null = null;
   private documentation: Queue<DocumentationJobData> | null = null;
@@ -90,24 +76,14 @@ export class JobQueue {
       this.redis = new IORedis(this.redisUrl, {
         maxRetriesPerRequest: null,
         enableReadyCheck: true,
-        // Keep ioredis' offline queue enabled. BullMQ sends INFO while it
-        // constructs a Queue, which happens before the socket is ready;
-        // disabling the queue makes that constructor throw ("Stream isn't
-        // writeable"). Enqueue calls are bounded by withTimeout() instead.
         connectTimeout: 10_000,
         lazyConnect: false,
       });
-      // Connection failures are surfaced by health()/ensureReady() and end up in
-      // the API log; without a listener ioredis would print every retry to stderr.
       this.redis.on("error", () => undefined);
     }
     return this.redis;
   }
 
-  /**
-   * Resolves true once the client is usable, or false if that does not happen
-   * within `timeoutMs`. Never rejects.
-   */
   private async waitForReady(connection: IORedis, timeoutMs: number): Promise<boolean> {
     if (connection.status === "ready") return true;
     if (connection.status === "end") return false;
@@ -125,10 +101,6 @@ export class JobQueue {
     });
   }
 
-  /**
-   * Fails fast (and with a clear message) when Redis cannot be reached, instead
-   * of letting a queue command sit in the offline queue until withTimeout fires.
-   */
   private async ensureReady(timeoutMs = READY_TIMEOUT_MS): Promise<void> {
     if (await this.waitForReady(this.connection(), timeoutMs)) return;
     throw new Error(
@@ -186,8 +158,6 @@ export class JobQueue {
 
   async enqueueRun(data: DocumentationJobData): Promise<string> {
     await this.ensureReady();
-    // BullMQ rejects custom ids containing ":" (they are used as Redis key
-    // segments), so use a dash-delimited prefix instead.
     const jobId = queueJobId("run", data.runId);
     await withTimeout(this.docsQueue().add(jobNameFor(data.operation), data, { jobId }));
     return jobId;
@@ -200,10 +170,6 @@ export class JobQueue {
     return jobId;
   }
 
-  /**
-   * Removes a queued job before it starts. Active jobs are left alone: the
-   * worker observes the persisted CANCELLED status at its next checkpoint.
-   */
   async cancelRun(jobId: string | null): Promise<void> {
     if (!jobId) return;
     await this.ensureReady();
@@ -246,11 +212,6 @@ export class JobQueue {
     }
   }
 
-  /**
-   * Waits up to `timeoutMs` for the connection to become usable. Used at boot so
-   * an unreachable Redis is reported once, in the startup log, instead of only
-   * when the first run is requested.
-   */
   async waitUntilReady(timeoutMs = 3_000): Promise<boolean> {
     return await this.waitForReady(this.connection(), timeoutMs);
   }

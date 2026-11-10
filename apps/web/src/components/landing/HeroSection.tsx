@@ -127,7 +127,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
         style={{ background: "var(--background)" }}
       >
         <div className="relative max-w-[1240px] mx-auto rounded-[24px] overflow-hidden shadow-[0_20px_50px_rgba(37,31,25,0.12)] border border-white/60">
-          {/* Background Imagery */}
           <div className="relative w-full min-h-[720px] flex flex-col justify-between">
             <img
               src={HERO_BG_URL}
@@ -135,10 +134,8 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
               aria-hidden="true"
               className="hero-bg-media w-full h-full object-cover object-center absolute inset-0"
             />
-            {/* Theme-aware atmospheric wash */}
             <div className="hero-wash absolute inset-0 pointer-events-none" />
 
-            {/* Hero Copy Block */}
             <div className="relative z-10 max-w-[760px] mx-auto text-center pt-14 sm:pt-20 px-5 hero-stagger">
               <a
                 href="https://github.com/vaibhav29-ed"
@@ -156,7 +153,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                 The AI agent that works with you, not just for you
               </h1>
 
-              {/* CTA Buttons */}
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href={connectHref}
@@ -175,13 +171,11 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
               </div>
             </div>
 
-            {/* Interactive CommitScibble AI Agent Mockup */}
             <div
               id="demo-console"
               className="glass-panel relative z-10 w-[94%] max-w-[920px] mx-auto mt-10 mb-6 rounded-[20px] backdrop-blur-2xl border shadow-[var(--shadow-float)] overflow-hidden"
             >
               <div className="grid grid-cols-1 md:grid-cols-12 min-h-[400px]">
-                {/* Left Sidebar inside Mockup */}
                 <div className="md:col-span-4 bg-[#f7f7f4]/80 border-b md:border-b-0 md:border-r border-[#e5e2dc] p-4 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -198,7 +192,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                       </span>
                     </div>
 
-                    {/* Active Repositories Navigation */}
                     <div className="space-y-1.5 mb-5">
                       <div className="text-[11px] uppercase tracking-wider text-[#68615a] font-medium px-2">
                         Connected Repositories
@@ -234,7 +227,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                     </div>
                   </div>
 
-                  {/* Stack Telemetry Badge */}
                   <div className="p-3 rounded-[12px] bg-[#eeede6]/90 border border-black/5">
                     <div className="text-[11px] font-medium text-[#251f19] mb-1">
                       Background Worker Pipeline
@@ -245,7 +237,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                   </div>
                 </div>
 
-                {/* Right Main Workspace */}
                 <div className="md:col-span-8 p-5 sm:p-7 flex flex-col justify-between bg-white/85">
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-[#eeede6]">
@@ -263,7 +254,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                       </span>
                     </div>
 
-                    {/* Interactive Prompt Input Box */}
                     <form onSubmit={handleRunPrompt} className="mt-4">
                       <div className="relative flex items-center rounded-[12px] bg-[#f7f7f4] border border-[#e5e2dc] px-3.5 py-2.5 focus-within:border-[#251f19] transition-colors">
                         <Sparkles className="w-4 h-4 text-[#f48d16] mr-2.5 shrink-0" />
@@ -285,7 +275,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                       </div>
                     </form>
 
-                    {/* Live Diff Patch Preview */}
                     <div className="mt-4 rounded-[12px] border border-[#eeede6] bg-[#fafaf8] overflow-hidden">
                       <div className="px-3.5 py-2 bg-[#eeede6]/70 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -315,7 +304,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
                     </div>
                   </div>
 
-                  {/* Quick Suggested Actions */}
                   <div className="mt-4 pt-3 border-t border-[#eeede6] flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[11px] text-[#68615a]">Quick worker actions:</span>
                     <div className="flex flex-wrap gap-1.5">
@@ -359,7 +347,6 @@ export const HeroSection: FC<HeroSectionProps> = ({ connectHref }) => {
               </div>
             </div>
 
-            {/* 4-Pillar Technical Architecture Strip */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-8">
               {[
                 {

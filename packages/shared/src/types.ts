@@ -38,7 +38,6 @@ export interface RepositoryAnalysis {
     test: string | null;
     lint: string | null;
     scripts: Record<string, string>;
-    /** Raw script commands as declared in manifests, used to validate generated docs. */
     scriptSource: string | null;
   };
   envVars: string[];
@@ -197,8 +196,6 @@ export interface UsageRecord {
   completionChars: number;
   outcome: "SUCCESS" | "FAILED" | "RETRYABLE_FAILURE" | "FALLBACK";
   errorCode: string | null;
-  /** HTTP status returned by the provider, when it responded. */
   status?: number | null;
-  /** Redacted provider message for failed attempts; safe to persist and log. */
   providerMessage?: string | null;
 }

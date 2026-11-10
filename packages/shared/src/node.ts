@@ -11,10 +11,6 @@ export function sha256Hex(input: string | Buffer): string {
   return createHash("sha256").update(input).digest("hex");
 }
 
-/**
- * Normalize text before hashing so cosmetic changes (CRLF, trailing whitespace,
- * trailing blank lines) do not look like semantic changes to the pipeline.
- */
 export function normalizeText(text: string): string {
   return text
     .replace(/^\uFEFF/, "")
@@ -45,10 +41,6 @@ export function safeEqualString(a: string, b: string): boolean {
   return timingSafeEqual(left, right);
 }
 
-/**
- * Verify a GitHub `X-Hub-Signature-256` header (hex digest, optionally prefixed
- * with `sha256=`) against the raw request body using constant-time comparison.
- */
 export function verifyHmacSha256(
   secret: string,
   payload: string | Buffer,
@@ -73,7 +65,6 @@ export function parseEncryptionKey(keyBase64: string): Buffer {
 
 const AAD = Buffer.from("commitscibble:github-token:v1", "utf8");
 
-/** AES-256-GCM encryption. Output format: v1.<iv>.<tag>.<ciphertext> (base64url). */
 export function encryptSecret(plaintext: string, keyBase64: string): string {
   const key = parseEncryptionKey(keyBase64);
   const iv = randomBytes(12);
@@ -116,10 +107,6 @@ export function newId(): string {
   return randomBytes(16).toString("hex");
 }
 
-/**
- * Per-user bearer key for reading that user's Convex realtime events. Derived
- * from a server-only secret so it never needs to be stored in the database.
- */
 export function deriveRealtimeReadKey(secret: string, userId: string): string {
   return createHmac("sha256", secret)
     .update(`commitscibble.realtime:${userId}`)

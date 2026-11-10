@@ -79,7 +79,6 @@ export class SessionService {
     const user = await User.findById(session.userId);
     if (!user || user.status !== "ACTIVE") return null;
 
-    // Refresh last-used timestamp lazily (never block the request on failure).
     void Session.updateOne({ _id: session._id }, { $set: { lastUsedAt: new Date() } }).catch(() => {});
 
     return toSessionUser(user);
@@ -147,7 +146,6 @@ export function createRequireAuth(sessions: SessionService): RequestHandler {
   };
 }
 
-/** Double-submit CSRF check for cookie-authenticated mutating requests. */
 export function csrfProtection(req: Request, _res: Response, next: NextFunction): void {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     next();

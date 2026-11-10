@@ -1,7 +1,3 @@
-/**
- * Creates the declared Mongoose indexes plus the retention TTL indexes.
- * Safe to run repeatedly. Usage: pnpm db:indexes
- */
 import { assertServiceEnv, loadEnv } from "@commitscibble/config";
 import {
   ALL_MODELS,

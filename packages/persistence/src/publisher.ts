@@ -12,7 +12,6 @@ export interface ActivityPublisher {
   publish(event: ActivityEvent): Promise<PublishResult>;
 }
 
-/** Used when Convex is not configured: the dashboard falls back to polling the API. */
 export class NullActivityPublisher implements ActivityPublisher {
   async publish(): Promise<PublishResult> {
     return { status: "SKIPPED", reason: "CONVEX_URL is not configured; UI falls back to polling" };

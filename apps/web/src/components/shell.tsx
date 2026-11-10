@@ -141,7 +141,6 @@ export function AppShell() {
         Skip to content
       </a>
 
-      {/* Floating glass sidebar */}
       <aside className="glass-panel fixed bottom-4 left-4 top-4 z-30 hidden w-[240px] flex-col rounded-[20px] border p-4 shadow-[var(--shadow-card)] lg:flex">
         <Link to="/" className="group flex items-center gap-2.5 text-left">
           <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-[8px] bg-[#251f19] transition-transform duration-300 group-hover:rotate-[-4deg]">
@@ -257,7 +256,6 @@ export function AppShell() {
       </aside>
 
       <div className="lg:pl-[272px]">
-        {/* Glass top bar */}
         <div className="sticky top-0 z-20 px-3 pt-4 sm:px-6">
           <header className="glass-nav flex items-center justify-between gap-3 rounded-[14px] border px-3 py-2.5 shadow-[0_10px_32px_rgba(37,31,25,0.08)] sm:px-4">
             <div className="flex min-w-0 items-center gap-2.5">
@@ -330,7 +328,6 @@ export function AppShell() {
             </div>
           </header>
 
-          {/* Mobile navigation */}
           <nav
             className="dash-scroll mt-2 flex gap-1.5 overflow-x-auto pb-1 lg:hidden"
             aria-label="Dashboard mobile"

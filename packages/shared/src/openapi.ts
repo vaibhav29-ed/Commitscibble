@@ -1,7 +1,3 @@
-/**
- * OpenAPI 3.1 description of the v1 API. Served at GET /api/v1/openapi.json so the
- * running service and this document can never drift into different files.
- */
 const errorResponse = {
   description: "Error",
   content: {

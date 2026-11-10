@@ -10,15 +10,10 @@ import {
 } from "./manifests.js";
 
 export interface AnalyzeOptions {
-  /** Repository name, used only when the manifest declares no project name. */
   fallbackName: string;
   analyzedAt?: Date;
 }
 
-/**
- * Derive documentation facts strictly from inspected files. Anything that could
- * not be verified is recorded in `unsupported` instead of being guessed.
- */
 export function analyzeRepository(
   snapshot: RepositorySnapshot,
   options: AnalyzeOptions,
@@ -129,7 +124,6 @@ export function analyzeRepository(
   };
 }
 
-/** Files worth sending to the model for a given analysis, in priority order. */
 export function selectEvidenceFiles(
   snapshot: RepositorySnapshot,
   analysis: RepositoryAnalysis,

@@ -152,11 +152,6 @@ function splitHunkIntoSections(hunk: DiffHunk): DiffSection[] {
   return sections;
 }
 
-/**
- * Split a unified diff into reviewable sections. When the proposed document is
- * available, each hunk borrows the nearest markdown heading so the rail reads
- * like the document rather than an anonymous list of ranges.
- */
 export function parseReviewDiff(
   diff: string,
   proposedContent = "",

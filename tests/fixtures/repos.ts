@@ -1,4 +1,3 @@
-/** In-memory repositories used by analysis and validation tests. */
 
 export const nodeAppFiles: Record<string, string> = {
   "package.json": JSON.stringify(

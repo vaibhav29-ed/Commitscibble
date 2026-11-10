@@ -12,17 +12,6 @@ import type {
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "");
 
-/**
- * Only a browser actually running on localhost talks to the local API. This is a
- * runtime hostname check rather than `import.meta.env.DEV`: if a host injects
- * `NODE_ENV=development` into a production build, Vite sets DEV=true and the old
- * check baked `http://localhost:4000` into the deployed app.
- *
- * A configured localhost URL is ignored on a real host too, so a stray
- * `VITE_API_URL=http://localhost:4000` in the hosting dashboard cannot break the
- * deployed site. Everywhere else an empty string means same-origin requests,
- * which is what the Vercel proxy setup in docs/deployment.md expects.
- */
 const localHostnames = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const localUrlPattern = /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i;
 const isLocalHost =

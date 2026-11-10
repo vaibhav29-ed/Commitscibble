@@ -1,10 +1,3 @@
-/**
- * Captures the real review screen (React app + product styles) as the landing
- * page's product image. Run the web dev server first:
- *
- *   pnpm --filter @commitscibble/web dev
- *   node scripts/capture-review-shot.mjs
- */
 import { chromium } from "@playwright/test";
 
 const BASE = process.env.SHOT_BASE ?? "http://localhost:5173";
@@ -205,7 +198,6 @@ await page.goto(`${BASE}/dashboard/reviews/${run.id}`, { waitUntil: "networkidle
 await page.getByText("Proposed documentation").waitFor({ timeout: 20_000 });
 await page.evaluate(() => document.fonts.ready);
 
-// Keep the product content, drop the app shell so the screen fits a hero frame.
 await page.evaluate(() => {
   document.querySelector("aside")?.remove();
   document.querySelector("header")?.remove();

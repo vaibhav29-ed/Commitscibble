@@ -173,7 +173,6 @@ export interface DocumentationRunShape {
   completedAt: Date | null;
   errorCode: string | null;
   errorMessage: string | null;
-  /** Set once when the failure notification is claimed, so it is sent at most once per run. */
   notifiedFailureAt: Date | null;
   proposalId: Types.ObjectId | null;
   appliedCommitSha: string | null;
@@ -352,8 +351,6 @@ export interface AuditLogShape {
 
 const AuditLogSchema = new Schema<AuditLogShape>(
   {
-    // Shared by every audit event of a run (the run's correlation id), so it
-    // must not be unique. `eventId` is the unique identifier of a single event.
     logId: { type: String, required: true, index: true },
     eventId: { type: String, required: true, unique: true },
     jobId: { type: String, default: null },

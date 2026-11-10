@@ -19,11 +19,6 @@ export interface AiEngineSettings {
   maxConcurrency: number;
 }
 
-/**
- * Builds the ordered provider chain. Unconfigured providers are skipped rather
- * than replaced with synthetic output, so a missing key surfaces as an explicit
- * configuration error in the affected run.
- */
 export function createProviderChain(settings: AiEngineSettings): AiProvider[] {
   const order: AiProviderName[] = [settings.primary];
   if (settings.fallback && settings.fallback !== settings.primary) order.push(settings.fallback);

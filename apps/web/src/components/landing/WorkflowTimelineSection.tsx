@@ -63,7 +63,6 @@ export const WorkflowTimelineSection: FC = () => {
       style={{ background: "transparent" }}
     >
       <div className="max-w-[1240px] mx-auto">
-        {/* Centered Headline */}
         <div className="max-w-[680px] mx-auto text-center mb-12">
           <h2 className="parley-h2">
             Tell CommitScibble once.
@@ -76,7 +75,6 @@ export const WorkflowTimelineSection: FC = () => {
           </p>
         </div>
 
-        {/* Interactive Timeline Card with Background Wave Imagery */}
         <div className="relative rounded-[28px] overflow-hidden shadow-[var(--shadow-card)] border theme-border bg-[#f7f7f4]">
           <div className="relative min-h-[340px] flex flex-col justify-between p-6 sm:p-10">
             <img
@@ -87,7 +85,6 @@ export const WorkflowTimelineSection: FC = () => {
             />
             <div className="ambient-wash absolute inset-0 pointer-events-none" />
 
-            {/* Top Interactive Step Selector */}
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 mb-8">
               <span className="badge-pill px-3 py-1 bg-white/90 backdrop-blur-md text-[#251f19] font-medium shadow-xs">
                 Interactive Pipeline Simulator • Click any stage
@@ -110,7 +107,6 @@ export const WorkflowTimelineSection: FC = () => {
               </div>
             </div>
 
-            {/* 4-Stage Visual Horizontal Track */}
             <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-auto">
               {STEPS.map((step, index) => {
                 const isSelected = activeStep === index;
@@ -143,7 +139,6 @@ export const WorkflowTimelineSection: FC = () => {
               })}
             </div>
 
-            {/* Bottom Live Stage Telemetry Output */}
             <div
               key={activeStep}
               className="content-swap relative z-10 mt-8 pt-4 border-t theme-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 glass-panel-strong backdrop-blur-md px-4 py-3 rounded-[14px]"
@@ -160,7 +155,6 @@ export const WorkflowTimelineSection: FC = () => {
             </div>
           </div>
 
-          {/* 3-Column Bottom Breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 sm:p-10 bg-white border-t border-[#eeede6]">
             <div>
               <div className="flex items-center gap-2 mb-2">

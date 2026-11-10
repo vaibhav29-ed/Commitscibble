@@ -20,7 +20,6 @@ const SECRET_PATTERNS: { name: string; pattern: RegExp; replacement: string }[] 
     replacement: "[REDACTED_API_KEY]",
   },
   {
-    // Google AI Studio now issues keys in this shorter AQ. format.
     name: "google_aq_api_key",
     pattern: /\bAQ\.[A-Za-z0-9_-]{30,}\b/g,
     replacement: "[REDACTED_API_KEY]",
@@ -76,10 +75,6 @@ export function redactSecrets(input: string): string {
 
 const REDACTED = "[REDACTED]";
 
-/**
- * Deep-clone a value for logging, replacing values of sensitive-looking keys
- * and redacting secret patterns inside strings. Handles cycles defensively.
- */
 export function redactObject(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
   if (depth > 8) return "[TRUNCATED]";
   if (typeof value === "string") return redactSecrets(value);
@@ -116,7 +111,6 @@ export interface SecretFinding {
   index: number;
 }
 
-/** Scan generated documentation for leaked credentials before it is proposed. */
 export function findSecretsInText(text: string): SecretFinding[] {
   const findings: SecretFinding[] = [];
   for (const pattern of KNOWN_SECRET_MARKERS) {

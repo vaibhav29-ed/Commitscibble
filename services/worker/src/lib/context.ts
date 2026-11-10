@@ -36,7 +36,6 @@ export class RunCancelledError extends Error {
   }
 }
 
-/** Cheap checkpoint: nothing is written to GitHub after a cancellation. */
 export async function assertRunActive(runId: string): Promise<void> {
   const current = await DocumentationRun.findById(runId).select("status").lean();
   if (current?.status === "CANCELLED") throw new RunCancelledError(String(runId));
@@ -50,7 +49,6 @@ export interface PreparedRun {
   headSha: string;
 }
 
-/** Atomically claim a queued/retrying/failed run for processing. */
 export async function claimRun(runId: string): Promise<DocumentationRunDocument | null> {
   const run = await DocumentationRun.findOneAndUpdate(
     { _id: runId, status: { $in: ["QUEUED", "RETRYING", "FAILED"] } },
@@ -201,8 +199,6 @@ export async function failRun(
       : new AppError(ERROR_CODES.INTERNAL_ERROR, "Documentation run failed unexpectedly", {
           cause: error,
         });
-  // Keep the AppError message for the user-facing run record, but fall back to
-  // the original exception message when the error arrived unwrapped.
   const message =
     error instanceof AppError
       ? safeErrorMessage(error)
@@ -271,9 +267,6 @@ export async function failRun(
       }
     }
   } finally {
-    // Everything the provider told us, redacted: provider, model, HTTP status,
-    // provider error code and the original message plus stack. Without this the
-    // log only showed the generic AppError message.
     deps.logger.error("Documentation run failed", {
       ...diagnostics,
       runId: String(run._id),

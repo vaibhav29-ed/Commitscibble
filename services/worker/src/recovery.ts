@@ -7,11 +7,6 @@ import {
 } from "@commitscibble/persistence";
 import type { Logger } from "./lib/logger.js";
 
-/**
- * Runs interrupted by a worker crash stay RUNNING forever. On startup we mark
- * them FAILED (never silently retry a GitHub write), and return approved-but-
- * unapplied proposals to PENDING so a reviewer can approve them again.
- */
 export async function recoverStaleRuns(env: Env, logger: Logger): Promise<number> {
   const cutoff = new Date(Date.now() - env.STALE_RUN_MINUTES * 60_000);
   const staleRuns = await DocumentationRun.find({
@@ -58,7 +53,6 @@ export async function recoverStaleRuns(env: Env, logger: Logger): Promise<number
     }
   }
 
-  // Approved proposals whose apply job never ran can otherwise never be applied.
   const orphaned = await DocumentationProposal.find({ status: "APPROVED" }).limit(200);
   let requeuedProposals = 0;
   for (const proposal of orphaned) {

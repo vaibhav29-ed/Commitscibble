@@ -10,7 +10,6 @@ export const ComparisonSection: FC = () => {
       style={{ background: "transparent" }}
     >
       <div className="max-w-[1240px] mx-auto">
-        {/* Centered Headline */}
         <div className="max-w-[680px] mx-auto text-center mb-12">
           <h2 className="parley-h2">
             From commit to done.
@@ -23,7 +22,6 @@ export const ComparisonSection: FC = () => {
           </p>
         </div>
 
-        {/* Comparison Showcase Card with Warm Glassmorphic Backdrop */}
         <div className="relative rounded-[28px] overflow-hidden p-5 sm:p-10 shadow-[var(--shadow-card)] border theme-border">
           <img
             src={COMPARISON_BG_IMG}
@@ -34,7 +32,6 @@ export const ComparisonSection: FC = () => {
           <div className="ambient-wash absolute inset-0 pointer-events-none" />
 
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Card: CommitScibble Autonomous Agent (Light Card) */}
             <div className="card p-6 sm:p-8 flex flex-col justify-between bg-white/95">
               <div>
                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#eeede6]">
@@ -97,7 +94,6 @@ export const ComparisonSection: FC = () => {
               </div>
             </div>
 
-            {/* Right Card: Standard Chatbots */}
             <div
               className="rounded-[20px] p-6 sm:p-8 flex flex-col justify-between text-white shadow-[0_12px_24px_rgba(37,31,25,0.18)]"
               style={{ backgroundColor: "#251f19" }}

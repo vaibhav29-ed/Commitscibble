@@ -49,7 +49,6 @@ export function assembleReadme(draft: ReadmeDraft): string {
   return `${parts.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
 }
 
-/** Map a documented section heading to one of the engine's canonical keys. */
 export function canonicalKeyForHeading(heading: string): SectionKey | null {
   const slug = slugifyHeading(heading);
   for (const key of SECTION_KEYS) {

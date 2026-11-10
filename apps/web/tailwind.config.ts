@@ -1,14 +1,6 @@
 import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
 
-/**
- * Tailwind configuration for CommitScibble web app.
- *
- * The palette is driven by the RGB CSS variables in src/index.css so light and
- * dark themes stay in sync. Only tokens that the app actually consumes are
- * declared here: a utility that is missing from this file is silently dropped
- * from the compiled stylesheet.
- */
 export default {
   darkMode: "class",
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
@@ -31,7 +23,6 @@ export default {
         success: "rgb(var(--success) / <alpha-value>)",
         warning: "rgb(var(--warning) / <alpha-value>)",
         "code-bg": "rgb(var(--code-bg) / <alpha-value>)",
-        // Green brand ramp (#0f7d45 family) used for marketing accents.
         brand: {
           50: "#eef7f2",
           100: "#d9ecdf",
@@ -54,7 +45,6 @@ export default {
       fontSize: {
         "2xs": ["0.6875rem", { lineHeight: "1rem" }],
       },
-      // Radii measured from the SuperCommands reference: 4 / 8 / 12.
       borderRadius: {
         sm: "4px",
         DEFAULT: "8px",

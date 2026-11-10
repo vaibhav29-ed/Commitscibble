@@ -19,7 +19,6 @@ function toRecord(doc: AuditLogShape & { _id?: unknown }): AuditLogRecord {
   };
 }
 
-/** Maps a run-status filter onto the activity event types that represent it. */
 const STATUS_TO_EVENT_TYPES: Record<string, ActivityEventType[]> = {
   QUEUED: ["STARTED"],
   RUNNING: ["STARTED", "PROGRESS"],
@@ -64,7 +63,6 @@ export class ActivityService {
       AuditLog.countDocuments(baseFilter),
     ]);
 
-    // Fall back to the generic helper when no post-filtering was required.
     if (
       !options.status &&
       !options.operation &&

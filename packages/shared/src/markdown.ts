@@ -9,9 +9,7 @@ export interface MarkdownSection {
   key: string;
   heading: string;
   level: number;
-  /** Character offset of the heading line in the source document. */
   startIndex: number;
-  /** Character offset where the next sibling section begins. */
   endIndex: number;
   body: string;
 }
@@ -73,11 +71,6 @@ function lineStartOffsets(markdown: string): number[] {
   return offsets;
 }
 
-/**
- * Split a README into its top-level sections. Only headings at the document's
- * primary section level create new sections; deeper headings stay inside their
- * parent section. Reassembly of preamble + bodies reproduces the input exactly.
- */
 export function splitSections(markdown: string): SplitMarkdown {
   const normalized = markdown.replace(/\r\n/g, "\n");
   const headings = parseHeadings(normalized);
@@ -90,8 +83,6 @@ export function splitSections(markdown: string): SplitMarkdown {
 
   const minimumLevel = Math.min(...headings.map((heading) => heading.level));
   const hasSecondLevel = headings.some((heading) => heading.level === 2);
-  // When a document has a level-1 title, sections live at level 2 (or deeper).
-  // Using the H1 as a section boundary would collapse the entire README into one.
   const sectionLevel = minimumLevel === 1 ? (hasSecondLevel ? 2 : 1) : minimumLevel;
   const starts = headings.filter((heading) => heading.level === sectionLevel);
   if (starts.length === 0) {
@@ -132,10 +123,6 @@ export function reassembleMarkdown(split: SplitMarkdown, replacements?: Map<stri
   return output;
 }
 
-/**
- * Replace the bodies of the given sections. Replacement bodies must begin with
- * a heading of the same level, otherwise the README structure could be broken.
- */
 export function replaceSectionBodies(
   markdown: string,
   replacements: Record<string, string>,

@@ -18,16 +18,10 @@ export interface RecordActivityInput {
   message: string;
   progress?: { step: number; total: number } | null;
   metadata?: Record<string, string | number | boolean> | null;
-  /** Shared correlation id for a whole run; generated when omitted. */
   logId?: string;
   eventId?: string;
 }
 
-/**
- * Writes the authoritative audit record. The same document is the realtime
- * outbox row, so a database write and its pending realtime delivery can never
- * diverge (single write, retryable delivery afterwards).
- */
 export async function recordActivity(input: RecordActivityInput): Promise<AuditLogShape> {
   const doc = await AuditLog.create({
     logId: input.logId ?? `log_${newId()}`,

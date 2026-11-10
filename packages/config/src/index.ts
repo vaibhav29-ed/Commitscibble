@@ -86,12 +86,6 @@ export type Env = z.infer<typeof envSchema>;
 
 const localUrlPattern = /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i;
 
-/**
- * Public URL of the web app. `APP_URL` is authoritative, but a production
- * deployment still carrying the localhost default would send users and email
- * links to their own machine. In that case fall back to the origin of the
- * configured OAuth callback, which always lives on the web host.
- */
 export function publicAppUrl(env: Env): string {
   if (!localUrlPattern.test(env.APP_URL)) return env.APP_URL;
   if (env.NODE_ENV !== "production" || !env.GITHUB_CALLBACK_URL) return env.APP_URL;
@@ -104,11 +98,6 @@ export function publicAppUrl(env: Env): string {
 
 let envFileLoaded = false;
 
-/**
- * Load the repository `.env` once for local development. Deployed services keep
- * using their platform environment; real environment variables always win over
- * values in the file. Commands run from the repo root or from a workspace.
- */
 function loadLocalEnvFile(): void {
   if (envFileLoaded) return;
   envFileLoaded = true;
@@ -132,7 +121,6 @@ export interface ServiceRequirements {
   role: "api" | "worker";
 }
 
-/** Validate environment variables and fail loudly with every missing key listed. */
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (source === process.env) loadLocalEnvFile();
   const parsed = envSchema.safeParse(source);
@@ -176,7 +164,6 @@ export interface GitHubAppEnvConfig {
   privateKey: string;
 }
 
-/** Installation-scoped GitHub access is enabled only when all three values exist. */
 export function githubAppConfig(env: Env): GitHubAppEnvConfig | null {
   if (!env.GITHUB_APP_ID || !env.GITHUB_APP_SLUG || !env.GITHUB_APP_PRIVATE_KEY) return null;
   const privateKey = env.GITHUB_APP_PRIVATE_KEY.includes("\\n")
@@ -240,10 +227,6 @@ export interface EmailConfig {
   from: string;
 }
 
-/**
- * Transactional email is optional. It is only enabled when both a provider key
- * and a sender address are configured; otherwise every notification is a no-op.
- */
 export function emailConfig(env: Env): EmailConfig | null {
   if (!env.RESEND_API_KEY || !env.EMAIL_FROM) return null;
   return { apiKey: env.RESEND_API_KEY, from: env.EMAIL_FROM };

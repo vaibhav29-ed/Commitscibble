@@ -2,12 +2,6 @@ import { UnrecoverableError } from "bullmq";
 import { AiProviderError } from "@commitscibble/ai-engine";
 import { AppError, ERROR_CODES, redactSecrets } from "@commitscibble/shared";
 
-/**
- * A failed run used to surface only "Documentation run failed", because the
- * original provider error was replaced by a generic AppError. These helpers
- * keep the whole cause chain (provider, model, HTTP status, upstream message,
- * stack) available to the logger without ever printing credentials.
- */
 export interface ErrorDiagnostics {
   name: string;
   message: string;
@@ -72,7 +66,6 @@ export function describeError(error: unknown): ErrorDiagnostics {
   };
 }
 
-/** Codes that cannot succeed on a queue retry: the input or configuration is wrong. */
 const PERMANENT_CODES: ReadonlySet<string> = new Set([
   ERROR_CODES.AI_NOT_CONFIGURED,
   ERROR_CODES.README_VALIDATION_FAILED,
@@ -97,26 +90,17 @@ export function isPermanentError(error: unknown): boolean {
   if (error instanceof AiProviderError) return !error.retryable;
   if (error instanceof AppError) {
     if (PERMANENT_CODES.has(error.code)) return true;
-    // The AI orchestrator sets retryable based on whether any provider failure
-    // in the chain was transient (rate limit, timeout, upstream 5xx).
     if (error.code === ERROR_CODES.AI_PROVIDER_ERROR) return !error.retryable;
     return false;
   }
   return false;
 }
 
-/**
- * BullMQ retries every thrown error up to `attempts` (3 for documentation).
- * Convert permanent failures so a missing key or a rejected model is reported
- * once instead of being replayed and exhausting provider quota.
- */
 export function toQueueError(error: unknown): Error {
   if (error instanceof UnrecoverableError) return error;
   if (isPermanentError(error)) {
     const diagnostics = describeError(error);
     const wrapped = new UnrecoverableError(diagnostics.causeMessage ?? diagnostics.message);
-    // BullMQ only keeps the thrown error's message, so preserve the original
-    // chain for the failed handler to log provider, model, status and stack.
     Object.defineProperty(wrapped, "cause", { value: error, configurable: true });
     return wrapped;
   }

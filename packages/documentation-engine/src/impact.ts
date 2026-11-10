@@ -65,12 +65,6 @@ function describeList(values: string[], limit = 4): string {
   return values.length > limit ? `${shown} +${values.length - limit} more` : shown;
 }
 
-/**
- * Decide which README sections a commit range can affect. This combines git
- * diff paths, derived analysis facts and section-to-source mapping rather than
- * relying on content hashes alone; unclassified source edits produce no impact
- * so manually authored sections are preserved.
- */
 export function computeDocumentationImpact(input: ImpactInput): DocumentationImpact {
   const impacts = new Map<SectionKey, SectionImpact>();
   const removedSourcePaths: string[] = [];
@@ -285,10 +279,6 @@ export interface ApplyPatchesResult {
   changed: boolean;
 }
 
-/**
- * Apply model-proposed section patches, rejecting anything outside the computed
- * impact set. All other sections are verified byte-identical before returning.
- */
 export function applyIncrementalPatches(
   markdown: string,
   patches: SectionPatch[],
@@ -357,7 +347,6 @@ export interface SectionSourceMapping {
   sourceHashes: Record<string, string>;
 }
 
-/** Map README sections to the repository files that justify them. */
 export function mapSectionsToSources(
   markdown: string,
   analysis: RepositoryAnalysis,
@@ -418,10 +407,6 @@ export function mapSectionsToSources(
   });
 }
 
-/**
- * Snapshot of facts used for change detection. Content hashes are indicators
- * only; the pipeline still compares derived facts and git diffs.
- */
 export function factsFingerprint(analysis: RepositoryAnalysis): Record<string, string> {
   return {
     install: hashContent(analysis.commands.install ?? ""),

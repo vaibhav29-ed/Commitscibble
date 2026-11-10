@@ -38,8 +38,6 @@ const STARTUP_VARS = [
 ] as const;
 
 async function main(): Promise<void> {
-  // Presence only, never values. Makes a misconfigured Railway service obvious
-  // even when the log viewer collapses the structured error that follows.
   process.stdout.write(
     `Worker environment: ${STARTUP_VARS.map((key) => `${key}=${process.env[key] ? "set" : "missing"}`).join(", ")}\n`,
   );
@@ -48,8 +46,6 @@ async function main(): Promise<void> {
   assertServiceEnv(env, { role: "worker" });
   const logger = createLogger(env.LOG_LEVEL);
 
-  // Non-secret AI configuration, logged explicitly so a wrong model or a
-  // missing fallback key is visible without guessing from provider errors.
   logger.info("AI configuration", {
     primaryProvider: env.AI_PROVIDER_PRIMARY,
     fallbackProvider: env.AI_PROVIDER_FALLBACK ?? null,
@@ -219,8 +215,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  // Plain text on purpose: hosting log viewers that render structured JSON only
-  // show the `message` field, which hid the real startup failure.
   const detail = error instanceof Error ? (error.stack ?? error.message) : String(error);
   process.stderr.write(`Worker failed to start: ${detail}\n`);
   process.exit(1);

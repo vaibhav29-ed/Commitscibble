@@ -1,11 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-/**
- * Convex is a realtime delivery channel only. MongoDB remains authoritative.
- * `readKey` is a per-user HMAC-derived bearer value returned only to that user's
- * authenticated browser session; the query rejects any request without it.
- */
 export default defineSchema({
   events: defineTable({
     eventId: v.string(),

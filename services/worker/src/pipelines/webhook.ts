@@ -9,11 +9,6 @@ import {
 import { prepareRun, type WorkerDeps } from "../lib/context.js";
 import { executeIncremental } from "./incremental.js";
 
-/**
- * Webhook processing pipeline. Dedupe happens at the HTTP layer (unique delivery
- * id); this job creates one persisted run per delivery and reuses it across
- * BullMQ retries so an interrupted delivery cannot create duplicate runs.
- */
 export async function runWebhookPush(
   deps: WorkerDeps,
   data: { deliveryId: string },

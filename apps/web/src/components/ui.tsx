@@ -15,9 +15,6 @@ import { cn } from "../lib/cn";
 
 export type IconType = ComponentType<{ className?: string }>;
 
-/* -------------------------------------------------------------------------- */
-/* Button                                                                     */
-/* -------------------------------------------------------------------------- */
 
 type ButtonVariant =
   | "primary"
@@ -94,9 +91,6 @@ export function Button({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Surfaces                                                                   */
-/* -------------------------------------------------------------------------- */
 
 export function Card({
   className,
@@ -219,10 +213,6 @@ export function IconTile({
   );
 }
 
-/**
- * Shared dashboard page header: pill eyebrow, measured title, optional prose,
- * optional meta row (badges/pills) and a right-aligned action cluster.
- */
 export function PageHeader({
   eyebrow,
   icon: Icon,
@@ -267,9 +257,6 @@ export function PageHeader({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Badge / status                                                             */
-/* -------------------------------------------------------------------------- */
 
 type BadgeTone = "neutral" | "success" | "danger" | "warning" | "accent" | "outline";
 type Tone = "neutral" | "success" | "danger" | "warn" | "info";
@@ -373,9 +360,6 @@ export function StatusPill({ value, className }: { value: string; className?: st
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Form controls                                                              */
-/* -------------------------------------------------------------------------- */
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn("dash-input", className)} {...props} />;
@@ -446,9 +430,6 @@ export function Switch({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Feedback                                                                   */
-/* -------------------------------------------------------------------------- */
 
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded-md bg-[var(--surface-3)]", className)} />;
@@ -529,8 +510,6 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   const copy = description ?? body ?? "";
-  // Lucide icons are forwardRef objects rather than plain functions, so detect
-  // both and only treat "has props" objects as already-rendered elements.
   const isComponent =
     typeof icon === "function" ||
     (typeof icon === "object" &&
@@ -582,9 +561,6 @@ export function CopyButton({ value, label = "Copy" }: { value: string; label?: s
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Dialog                                                                     */
-/* -------------------------------------------------------------------------- */
 
 export function Dialog({
   open,
@@ -658,9 +634,6 @@ export function Dialog({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Tabs                                                                       */
-/* -------------------------------------------------------------------------- */
 
 export function Tabs({
   tabs,

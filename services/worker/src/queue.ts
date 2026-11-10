@@ -20,7 +20,6 @@ export function createRedisConnection(url: string): IORedis {
   return new IORedis(url, { maxRetriesPerRequest: null, enableReadyCheck: true });
 }
 
-/** Producer used by the worker only for outbox sweeps and recovery nudges. */
 export class WorkerQueueProducer {
   private queue: Queue | null = null;
 
@@ -43,7 +42,6 @@ export class WorkerQueueProducer {
 
   async nudgeOutbox(): Promise<void> {
     const bucket = Math.floor(Date.now() / 2000);
-    // BullMQ rejects custom ids containing ":".
     await this.outboxQueue().add(JOB_NAMES.OUTBOX_DELIVER, {}, { jobId: `outbox-${bucket}` });
   }
 

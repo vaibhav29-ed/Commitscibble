@@ -23,7 +23,6 @@ export interface DocumentationTaskInput {
   existingReadme: string | null;
   maintainedSections: string[];
   maxContextChars: number;
-  /** Validation failures from a previous attempt; bounded to a single repair pass. */
   validationFeedback?: string[];
 }
 
@@ -43,11 +42,6 @@ export interface CleanupTaskInput {
   maxContextChars: number;
 }
 
-/**
- * Task-level façade over the provider orchestrator. Prompts are bounded before
- * they are sent so a large repository cannot silently blow a provider's context
- * window; the clipped amount is reported in the result warnings.
- */
 export class DocumentationAi {
   constructor(private readonly orchestrator: AiOrchestrator) {}
 

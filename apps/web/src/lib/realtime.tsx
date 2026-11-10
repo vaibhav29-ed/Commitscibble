@@ -3,10 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { anyApi } from "convex/server";
 import { ConvexProvider, ConvexReactClient, useQuery } from "convex/react";
 
-/**
- * Function references are resolved at runtime through Convex's proxy. Running
- * `npx convex dev` can replace this with generated, fully typed references.
- */
 const convexApi: any = anyApi;
 
 const CONVEX_URL = (import.meta.env.VITE_CONVEX_URL as string | undefined) ?? "";
@@ -31,11 +27,6 @@ export function useRealtimeStatus(): "convex" | "polling" {
   return useContext(RealtimeStatusContext);
 }
 
-/**
- * Subscribes to the Convex event feed for this user's read key. Incoming events
- * invalidate the persisted API queries, so a reconnecting client always
- * recovers the complete authoritative history from MongoDB.
- */
 export function ActivityRealtimeBridge({ readKey }: { readKey: string | null }) {
   if (!CONVEX_URL || !readKey) return null;
   return <ConvexSubscription readKey={readKey} />;

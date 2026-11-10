@@ -17,11 +17,6 @@ import {
 } from "../components/ui";
 import { relativeTime } from "../lib/format";
 
-/**
- * Patches are the persisted documentation proposals awaiting review. The API
- * exposes one pending proposal per repository on the repository list, so this
- * screen links to the real review route rather than a mock patch store.
- */
 export default function PatchesPage() {
   const repositories = useRepositories();
   const connected = repositories.data?.connected ?? [];

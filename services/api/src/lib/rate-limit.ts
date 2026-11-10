@@ -7,10 +7,6 @@ export interface RateLimitWindow {
   resetAt: number;
 }
 
-/**
- * Counter backend. Redis is used in deployments with more than one API replica;
- * the in-memory store remains the default for tests and single-process runs.
- */
 export interface RateLimitStore {
   increment(key: string, windowMs: number): Promise<RateLimitWindow>;
 }
@@ -62,10 +58,6 @@ export class RedisRateLimitStore implements RateLimitStore {
   }
 }
 
-/**
- * Creates a lazily connected Redis client for rate limiting. Callers own the
- * returned handle so the connection can be closed during shutdown.
- */
 export function createRedisRateLimitStore(redisUrl: string): {
   store: RateLimitStore;
   close: () => Promise<void>;
@@ -75,7 +67,6 @@ export function createRedisRateLimitStore(redisUrl: string): {
     maxRetriesPerRequest: 2,
     enableReadyCheck: true,
   });
-  // Connection failures are handled per request by falling back to memory.
   redis.on("error", () => undefined);
   return {
     store: new RedisRateLimitStore(redis),
@@ -87,15 +78,10 @@ export function createRedisRateLimitStore(redisUrl: string): {
 
 let sharedStore: RateLimitStore | null = null;
 
-/** Registers the process-wide limiter backend (Redis in production). */
 export function setRateLimitStore(store: RateLimitStore | null): void {
   sharedStore = store;
 }
 
-/**
- * Fixed-window limiter. A shared store is used when configured, and any store
- * failure degrades to the in-process counter instead of failing the request.
- */
 export function createRateLimiter(options: {
   windowMs: number;
   max: number;

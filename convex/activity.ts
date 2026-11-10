@@ -25,10 +25,6 @@ function constantTimeEqual(a: string, b: string): boolean {
   return result === 0;
 }
 
-/**
- * Append an activity event. Requires the deployment's publish token, and is
- * idempotent by eventId so retried outbox deliveries cannot duplicate events.
- */
 export const append = mutationGeneric({
   args: { token: v.string(), event: eventValidator },
   handler: async (ctx, { token, event }) => {
@@ -48,7 +44,6 @@ export const append = mutationGeneric({
   },
 });
 
-/** Latest events for one user, used to invalidate persisted API queries. */
 export const recent = queryGeneric({
   args: { readKey: v.string(), limit: v.number() },
   handler: async (ctx, { readKey, limit }) => {

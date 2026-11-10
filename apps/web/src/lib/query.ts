@@ -46,10 +46,6 @@ export interface RepositoryRunsResult {
   error: unknown;
 }
 
-/**
- * Runs are only exposed per repository by the API, so the jobs screen fans out
- * across the connected repositories the workspace already knows about.
- */
 export function useRepositoryRuns(repositories: ConnectedRepositoryView[]) {
   const results = useQueries({
     queries: repositories.map((repository) => ({

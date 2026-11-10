@@ -23,10 +23,6 @@ export class WebhookService {
     private readonly logger: Logger,
   ) {}
 
-  /**
-   * Persist delivery state, deduplicate by GitHub delivery id, filter irrelevant
-   * pushes, then enqueue. The HTTP request never waits on documentation work.
-   */
   async handle(input: {
     deliveryId: string;
     event: string;

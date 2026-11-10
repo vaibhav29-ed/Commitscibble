@@ -17,7 +17,6 @@ export interface OAuthAuthorizeOptions {
   scopes?: string[];
 }
 
-/** Minimal scopes: public profile, primary email, and repository contents. */
 export const DEFAULT_OAUTH_SCOPES = ["read:user", "user:email", "repo"];
 
 export function buildAuthorizeUrl(options: OAuthAuthorizeOptions): string {
@@ -72,10 +71,6 @@ export async function exchangeCodeForToken(options: {
   return { accessToken: parsed.access_token, scope: parsed.scope ?? "" };
 }
 
-/**
- * OAuth state is an HMAC-signed, timestamped nonce mirrored into an HttpOnly
- * cookie. This prevents CSRF without needing a pre-login server session.
- */
 export function createOAuthState(secret: string, nonce: string, issuedAt: number): string {
   const payload = `${nonce}.${issuedAt}`;
   return `${payload}.${hmacSha256Hex(secret, payload)}`;

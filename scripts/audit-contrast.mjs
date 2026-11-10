@@ -1,7 +1,3 @@
-/**
- * Temporary audit: WCAG contrast per text node, radius sources, mobile metrics.
- * Uses the same mocked API as scripts/audit-supercommands.mjs.
- */
 import { chromium } from "@playwright/test";
 
 const BASE = process.env.AUDIT_BASE ?? "http://localhost:4173";
@@ -334,7 +330,6 @@ for (const theme of ["light", "dark"]) {
   await context.close();
 }
 
-// Mobile structural checks for public pages.
 const mobile = [];
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
@@ -374,7 +369,6 @@ const mobile = [];
   await context.close();
 }
 
-// Signed-out public pages (the signed-in mock redirects /signin to the dashboard).
 const signedOut = [];
 {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });

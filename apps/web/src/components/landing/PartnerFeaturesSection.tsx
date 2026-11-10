@@ -11,7 +11,6 @@ export const PartnerFeaturesSection: FC = () => {
       style={{ background: "transparent" }}
     >
       <div className="max-w-[1240px] mx-auto relative">
-        {/* Centered Header */}
         <div className="max-w-[700px] mx-auto text-center mb-14">
           <h2 className="parley-h2">
             A real partner,
@@ -24,7 +23,6 @@ export const PartnerFeaturesSection: FC = () => {
           </p>
         </div>
 
-        {/* Soft Ambient Imagery Backdrop behind cards */}
         <div className="relative rounded-[28px] p-4 sm:p-8 overflow-hidden">
           <img
             src={PARTNER_BG_IMG}
@@ -34,9 +32,7 @@ export const PartnerFeaturesSection: FC = () => {
           />
           <div className="ambient-wash absolute inset-0 pointer-events-none" />
 
-          {/* Three Feature Cards */}
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 bento-grid">
-            {/* Card 1: Orange Accent */}
             <div className="card bento-card flex flex-col justify-between p-6 sm:p-8 min-h-[260px] transition-transform duration-300 hover:-translate-y-1">
               <div>
                 <div className="w-11 h-11 rounded-[12px] bg-[#f48d16] flex items-center justify-center text-white mb-6 shadow-[0_6px_14px_rgba(244,141,22,0.28)]">
@@ -50,7 +46,6 @@ export const PartnerFeaturesSection: FC = () => {
               </p>
             </div>
 
-            {/* Card 2: Dark Core Accent */}
             <div className="card bento-card flex flex-col justify-between p-6 sm:p-8 min-h-[260px] transition-transform duration-300 hover:-translate-y-1">
               <div>
                 <div className="w-11 h-11 rounded-[12px] bg-[#251f19] flex items-center justify-center text-[#f48d16] mb-6 shadow-[0_6px_14px_rgba(37,31,25,0.2)]">
@@ -64,7 +59,6 @@ export const PartnerFeaturesSection: FC = () => {
               </p>
             </div>
 
-            {/* Card 3: Royal Blue Accent */}
             <div className="card bento-card flex flex-col justify-between p-6 sm:p-8 min-h-[260px] transition-transform duration-300 hover:-translate-y-1">
               <div>
                 <div className="w-11 h-11 rounded-[12px] bg-[#0000ee] flex items-center justify-center text-white mb-6 shadow-[0_6px_14px_rgba(0,0,238,0.25)]">

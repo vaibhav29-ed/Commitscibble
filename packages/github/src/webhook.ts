@@ -36,11 +36,6 @@ export function isDocumentationCommitMessage(message: string): boolean {
   return message.includes(DOC_COMMIT_MARKER) || /commitscibble/i.test(message);
 }
 
-/**
- * A push that only contains commits created by CommitScibble must not trigger
- * another documentation run. The explicit commit marker is authoritative; the
- * branch head SHA check in the pipeline provides a second layer of protection.
- */
 export function isSelfAuthoredPush(payload: PushWebhookPayload): boolean {
   if (payload.after === payload.before) return true;
   const headMessage = payload.head_commit?.message;

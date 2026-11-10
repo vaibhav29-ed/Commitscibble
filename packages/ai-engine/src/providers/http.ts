@@ -10,7 +10,6 @@ export interface FetchProviderOptions {
   baseUrl?: string;
 }
 
-/** Provider error bodies are short; keep a redacted one-line excerpt for logs. */
 function responseSnippet(body: string): string | null {
   const compact = body.replace(/\s+/g, " ").trim();
   if (!compact) return null;

@@ -94,10 +94,8 @@ export const JOB_NAMES = {
   OUTBOX_DELIVER: "outbox-deliver",
 } as const;
 
-/** Marker written into commits created by CommitScibble; used for loop prevention. */
 export const DOC_COMMIT_MARKER = "[commitscibble]";
 
-/** Standard README section keys used by the documentation engine. */
 export const SECTION_KEYS = [
   "overview",
   "features",

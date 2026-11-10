@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-/**
- * Fails the production build when the web bundle is not a real production build.
- *
- * Why this exists: a host that injects `NODE_ENV=development` makes Vite compile
- * in development mode. The app then ships the React dev build (much larger) and,
- * historically, resolved the API fallback to `http://localhost:4000`. That broke
- * "Connect GitHub" on the deployed site while every build looked successful.
- */
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

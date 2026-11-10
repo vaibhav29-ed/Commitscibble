@@ -3,13 +3,11 @@ import type { AiProviderName, UsageRecord } from "@commitscibble/shared";
 export interface AiJsonRequest {
   system: string;
   prompt: string;
-  /** Logical operation label, recorded in usage data (never prompt content). */
   operation: string;
 }
 
 export interface AiRawResponse {
   text: string;
-  /** Model that actually produced the text, when the provider can report it. */
   model?: string;
 }
 
@@ -34,9 +32,7 @@ export class AiProviderError extends Error {
   readonly retryable: boolean;
   readonly fallbackEligible: boolean;
   readonly status: number | null;
-  /** Model id that was sent to the provider for the failing request. */
   readonly model: string | null;
-  /** Short, redacted excerpt of the provider's error body. Never the API key. */
   readonly responseSnippet: string | null;
 
   constructor(

@@ -94,12 +94,6 @@ export function proposalDetail(doc: DocumentationProposalDocument): ProposalSumm
 export class RunService {
   constructor(private readonly queue: JobQueue) {}
 
-  /**
-   * Schedules a queued run and stores its BullMQ job id. If the queue cannot be
-   * reached the run is marked FAILED with an actionable error code instead of
-   * being left in QUEUED forever, and the caller gets a 503 rather than a hang
-   * or an opaque 500.
-   */
   private async scheduleRun(
     run: DocumentationRunDocument,
     repositoryFullName: string | null,
@@ -333,8 +327,6 @@ export class RunService {
         }),
       );
     } catch (error) {
-      // The proposal was claimed above; put it back so the user can approve it
-      // again once the queue is reachable.
       await DocumentationProposal.updateOne(
         { _id: claimed._id, status: "APPROVED" },
         { $set: { status: "PENDING", reviewedAt: null, reviewedBy: null } },
@@ -405,7 +397,6 @@ export class RunService {
       });
     }
 
-    // Best effort: an active job is stopped by the worker's cancellation checks.
     await this.queue.cancelRun(run.jobId).catch(() => undefined);
 
     const repository = await Repository.findById(run.repositoryId);

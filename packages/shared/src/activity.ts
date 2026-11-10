@@ -30,7 +30,6 @@ export interface BuildActivityEventInput {
   createdAt?: Date | string;
 }
 
-/** Build a size-bounded, display-safe activity event. */
 export function buildActivityEvent(input: BuildActivityEventInput): ActivityEvent {
   return {
     eventId: input.eventId,
@@ -50,10 +49,6 @@ export function buildActivityEvent(input: BuildActivityEventInput): ActivityEven
   };
 }
 
-/**
- * Merge a live event stream with authoritative history, dropping duplicates and
- * ordering by creation time so reconnecting clients converge on one timeline.
- */
 export function mergeActivityEvents(
   history: ActivityEvent[],
   live: ActivityEvent[],

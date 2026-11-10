@@ -46,11 +46,6 @@ export interface FullGenerationOptions {
   summaryPrefix?: string;
 }
 
-/**
- * Shared full-generation path used by GENERATE, RESYNC and the incremental
- * fallback when the previous commit is unavailable. Never writes without
- * going through a validated proposal.
- */
 export async function executeFullGeneration(
   deps: WorkerDeps,
   prepared: PreparedRun,

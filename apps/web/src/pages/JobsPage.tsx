@@ -31,11 +31,6 @@ interface RunWithRepository {
   repositoryFullName: string;
 }
 
-/**
- * Runs are exposed per repository by the API, so this screen aggregates the
- * latest runs for each connected repository. It reflects real worker state and
- * never fabricates progress percentages.
- */
 export default function JobsPage() {
   const repositories = useRepositories();
   const connected = repositories.data?.connected ?? [];

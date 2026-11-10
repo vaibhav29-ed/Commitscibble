@@ -13,9 +13,7 @@ export interface EmailSettings {
 }
 
 export interface EmailSender {
-  /** False when no credentials are configured; callers skip work instead of failing. */
   readonly enabled: boolean;
-  /** Returns true only when the provider accepted the message. Never throws. */
   send(message: EmailMessage): Promise<boolean>;
 }
 
@@ -27,10 +25,6 @@ export interface EmailSenderOptions {
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
-/**
- * Minimal Resend client. Email is a best-effort notification channel: a
- * delivery problem is reported to the caller's logger and never fails a run.
- */
 export function createEmailSender(
   settings: EmailSettings | null,
   options: EmailSenderOptions = {},

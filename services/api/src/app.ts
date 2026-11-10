@@ -33,7 +33,6 @@ export interface AppDependencies {
   env: Env;
   logger: Logger;
   services: ServiceContainer;
-  /** Injectable for tests; defaults to the Mongo-backed implementation. */
   sessions?: SessionService;
   queue?: Pick<JobQueue, "health" | "enqueueOutboxSweep">;
   aiProviders?: string[];
@@ -53,7 +52,6 @@ export function createApp(deps: AppDependencies): Express {
   app.use(requestContext(logger));
   app.use(accessLog(logger));
 
-  // Webhook must be registered before express.json so the raw body is intact.
   app.use(
     "/api/v1/webhooks",
     createWebhookRouter({
@@ -253,10 +251,6 @@ function errorHandler(logger: Logger) {
 
     const appError = toAppError(error as Error);
     const isServerError = appError.httpStatus >= 500;
-    // Only errors the API did not author get their message hidden. AppError
-    // messages are written for clients (e.g. NOT_READY -> "the job queue is
-    // unavailable, check REDIS_URL"), so replacing them with a generic 500
-    // would make an actionable failure impossible to diagnose from the UI.
     const shouldScrub = !isAppError(error);
 
     if (isServerError) {

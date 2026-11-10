@@ -10,11 +10,6 @@ export interface DrainResult {
 
 const MAX_ATTEMPTS = 6;
 
-/**
- * Deliver pending realtime events. Audit rows are claimed with a lock so two
- * workers cannot publish the same event, and failures back off with a bounded
- * exponential delay before being marked dead-letter (FAILED) for inspection.
- */
 export async function drainOutbox(
   publisher: ActivityPublisher,
   options: { limit?: number; now?: Date } = {},

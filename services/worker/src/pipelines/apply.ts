@@ -18,13 +18,6 @@ export interface ApplyResult {
   noChange: boolean;
 }
 
-/**
- * Apply an approved proposal with optimistic concurrency:
- *  1. re-fetch the README at the configured target branch,
- *  2. refuse to write when it changed since analysis (stale proposal),
- *  3. skip empty commits,
- *  4. mark the proposal applied only after GitHub confirms the commit.
- */
 export async function applyProposal(args: {
   deps: WorkerDeps;
   prepared: { run: DocumentationRunDocument; repository: RepositoryDocument };
@@ -96,7 +89,6 @@ export async function applyProposal(args: {
 
   const message = buildCommitMessage(repository.settings.commitMessageTemplate, readmePath);
 
-  // Last checkpoint before the only GitHub write in the pipeline.
   await assertRunActive(String(prepared.run._id));
 
   let result;

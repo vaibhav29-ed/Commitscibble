@@ -115,8 +115,6 @@ export class RepositoryService {
     githubRepoId: number,
     options: { readmePath?: string; updateMode?: "AUTOMATIC" | "REVIEW" },
   ): Promise<ConnectedRepositoryView> {
-    // Never trust a client supplied owner/name: the repository must appear in
-    // the authenticated user's accessible repository list.
     const available = await this.github.listRepositories(userId);
     const target = available.find((repo) => repo.githubRepoId === githubRepoId);
     if (!target) {
@@ -152,8 +150,6 @@ export class RepositoryService {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
-    // Prefer installation-scoped tokens for this repository when the user has
-    // installed the GitHub App and the installation can actually read it.
     const installationId = await this.github.installationIdFor(userId).catch(() => null);
     let repositoryInstallationId: number | null = null;
     if (installationId) {

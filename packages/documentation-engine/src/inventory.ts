@@ -359,11 +359,6 @@ export function isIgnoredByGitignore(path: string, patterns: string[]): boolean 
   return ignored;
 }
 
-/**
- * Build a deterministic, bounded file inventory. Large repositories are
- * prioritized by manifest importance and entry-point likelihood instead of
- * dumping an arbitrary subset of files into the model context.
- */
 export function buildInventory(
   files: { path: string; size: number; type?: string }[],
   options: InventoryOptions = {},

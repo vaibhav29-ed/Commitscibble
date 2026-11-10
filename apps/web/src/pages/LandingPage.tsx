@@ -11,11 +11,6 @@ import { DocsSection } from "../components/landing/DocsSection";
 import { FaqSection } from "../components/landing/FaqSection";
 import { IntegrationsFooterSection } from "../components/landing/IntegrationsFooterSection";
 
-/**
- * Marketing route built from the supplied design. The sections are the ported
- * ones under components/landing; this file only supplies the live session
- * destination and the shared theme state.
- */
 export default function LandingPage() {
   const me = useMe();
   const { theme, setTheme, resolvedTheme } = useTheme();

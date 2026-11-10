@@ -20,9 +20,6 @@ export async function processDocumentationJob(
   try {
     await runDocumentationJob(deps, job);
   } catch (error) {
-    // Permanent failures (missing key, rejected model, invalid request) fail
-    // the same way on every BullMQ attempt, so mark them unrecoverable instead
-    // of replaying them and burning provider quota.
     throw toQueueError(error);
   }
 }
@@ -72,8 +69,6 @@ async function runApply(deps: WorkerDeps, data: DocumentationJobData): Promise<v
   const prepared = await prepareRun(deps, data.runId);
   if (!prepared) return;
   try {
-    // The proposal belongs to the originating run, not to this apply run, so it
-    // is resolved by id and ownership, then checked against the repository.
     const proposal = await DocumentationProposal.findOne({
       _id: data.proposalId,
       userId: prepared.run.userId,

@@ -4,17 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Dashboard design tokens.
- *
- * Retuned to the supplied Parley/Framer palette: warm off-white paper, ink
- * brown-black, and a single orange accent. The marketing landing page keeps
- * its own scoped tokens inside ./styles/landing.css.
- */
 :root {
   color-scheme: light;
 
-  /* Tailwind semantic colors (RGB channels for alpha support). */
   --bg: 247 247 244;
   --fg: 37 31 25;
   --card: 255 255 255;
@@ -32,7 +24,6 @@
   --warning: 154 78 0;
   --code-bg: 250 250 248;
 
-  /* Parley theme surfaces. */
   --background: #f7f7f4;
   --foreground: #000000;
   --surface-1: #251f19;
@@ -112,7 +103,6 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Dashboard chrome matches the supplied 12px root scale. */
   html.cs-dash-root {
     font-size: 12px;
   }
@@ -177,9 +167,6 @@
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/* Typography                                                                 */
-/* -------------------------------------------------------------------------- */
 
 .font-display {
   font-family: "DM Sans", "Archivo", ui-sans-serif, system-ui, sans-serif;
@@ -198,7 +185,6 @@
     @apply rounded-xl border border-border bg-card shadow-subtle;
   }
 
-  /* Marketing type scale, retained for the docs and marketing surfaces. */
   .type-display {
     font-family: "Archivo", "DM Sans", ui-sans-serif, system-ui, sans-serif;
     font-weight: 700;
@@ -284,9 +270,6 @@
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/* Shared theme-aware surfaces                                                */
-/* -------------------------------------------------------------------------- */
 
 .theme-surface {
   background-color: var(--panel-solid);
@@ -386,9 +369,6 @@
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/* Dashboard design system                                                    */
-/* -------------------------------------------------------------------------- */
 
 .dash-title {
   font-family: "DM Sans", "Archivo", ui-sans-serif, system-ui, sans-serif;
@@ -546,7 +526,6 @@
   border-radius: 999px;
 }
 
-/* Live status indicator */
 .live-dot {
   position: relative;
   display: inline-block;
@@ -752,7 +731,6 @@
   }
 }
 
-/* Typography hierarchy for dark image banners. */
 .parley-h1 {
   font-family: "DM Sans", "Archivo", ui-sans-serif, system-ui, sans-serif;
   font-size: 68px;
@@ -800,7 +778,6 @@
   box-shadow: var(--shadow-float);
 }
 
-/* Exact spinner animation name used by the supplied design. */
 @keyframes __framer-editorbar-spinner-spin {
   0% {
     transform: rotate(0deg);
@@ -860,7 +837,6 @@ input[type="range"].parley-slider::-webkit-slider-thumb:hover {
   }
 }
 
-/* Code and measured data share one numeric rhythm. */
 .font-mono,
 code,
 pre,
@@ -869,9 +845,6 @@ samp {
   font-variant-numeric: tabular-nums;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Motion                                                                     */
-/* -------------------------------------------------------------------------- */
 
 @keyframes motion-event-in {
   0% {
@@ -953,7 +926,6 @@ samp {
   animation: motion-fade-in 150ms ease-out both;
 }
 
-/* The review panel is the only element that should morph across a state change. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

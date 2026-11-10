@@ -28,17 +28,8 @@ export interface GeminiProviderOptions {
   baseUrl?: string;
 }
 
-/**
- * Google retires model ids for new API keys without removing them from the
- * models list. When the configured id stops being served, these well-known
- * flash ids are tried in order so a retired default cannot brick generation.
- */
 const MODEL_FALLBACKS = ["gemini-3.5-flash", "gemini-flash-latest"];
 
-/**
- * Gemini via the official Generative Language REST API. Model ids are fully
- * environment-configured so a retired model never needs a code change.
- */
 export class GeminiProvider implements AiProvider {
   readonly name = "gemini" as const;
   readonly model: string;
@@ -86,10 +77,6 @@ export class GeminiProvider implements AiProvider {
           temperature: 0.2,
           maxOutputTokens: this.maxOutputTokens,
           responseMimeType: "application/json",
-          // Gemini 3 Flash spends part of the output budget on internal
-          // reasoning by default. A structured JSON document needs that budget
-          // for the payload, so reasoning is disabled for flash models. Pro
-          // models reject a zero budget, so the setting is only sent for flash.
           ...(model.includes("flash") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
         },
       },
@@ -125,7 +112,6 @@ export class GeminiProvider implements AiProvider {
   }
 }
 
-/** A retired model returns 404; an overloaded one returns 503. */
 function isModelUnavailable(error: unknown): boolean {
   return error instanceof AiProviderError && (error.status === 404 || error.status === 503);
 }

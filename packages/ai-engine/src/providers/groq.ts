@@ -23,7 +23,6 @@ export interface GroqProviderOptions {
   baseUrl?: string;
 }
 
-/** Groq via the OpenAI-compatible chat completions API. */
 export class GroqProvider implements AiProvider {
   readonly name = "groq" as const;
   readonly model: string;

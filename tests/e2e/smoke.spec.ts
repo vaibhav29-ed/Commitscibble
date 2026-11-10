@@ -1,9 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-/**
- * Smoke coverage for the public surface. These run against the Vite dev
- * server without requiring API, database or GitHub credentials.
- */
 test("landing page presents the product and both calls to action", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/your code evolves/i);

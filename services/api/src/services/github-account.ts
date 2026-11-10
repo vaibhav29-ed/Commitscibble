@@ -34,7 +34,6 @@ export class GithubAccountService {
     return this.appConfigured() ? appInstallUrl(this.env.GITHUB_APP_SLUG as string) : null;
   }
 
-  /** Confirms the installation belongs to the signed-in user before storing it. */
   async verifyInstallation(userId: string, installationId: number): Promise<boolean> {
     const client = await this.clientForUser(userId);
     const installations = await client.listUserInstallations();
@@ -143,7 +142,6 @@ export class GithubAccountService {
     }));
   }
 
-  /** Revoke the OAuth grant. Returns false when GitHub no longer recognizes it. */
   async revoke(userId: string): Promise<boolean> {
     const user = await User.findById(userId).select("+githubTokenEncrypted");
     if (!user || !user.githubTokenEncrypted) return false;

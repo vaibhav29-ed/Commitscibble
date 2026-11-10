@@ -41,11 +41,6 @@ export async function pingDatabase(): Promise<boolean> {
   return true;
 }
 
-/**
- * Older builds declared the run-scoped `logId` correlation id as unique, which
- * made every audit event after the first one for a run fail with E11000. Repair
- * the index in place so existing databases heal on startup.
- */
 async function ensureAuditLogIndexes(): Promise<void> {
   const indexes = await AuditLog.collection.indexes().catch((error: unknown) => {
     if ((error as { code?: number }).code === 26) return [];
@@ -63,10 +58,6 @@ async function ensureAuditLogIndexes(): Promise<void> {
   await AuditLog.collection.createIndex({ logId: 1 }, { name: "logId_1" });
 }
 
-/**
- * TTL retention is enforced by MongoDB, not by application sweeps. Run this at
- * startup so retention changes in configuration take effect.
- */
 export async function initializeIndexes(options: {
   auditRetentionDays: number;
   webhookRetentionDays: number;

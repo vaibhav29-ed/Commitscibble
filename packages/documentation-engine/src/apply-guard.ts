@@ -11,10 +11,6 @@ export interface FreshnessResult {
   reason: string;
 }
 
-/**
- * Optimistic concurrency check performed immediately before writing to GitHub.
- * A README edited after analysis must never be silently overwritten.
- */
 export function evaluateProposalFreshness(input: FreshnessInput): FreshnessResult {
   const currentHash = hashContent(input.currentContent);
   if (currentHash !== input.baseReadmeHash) {

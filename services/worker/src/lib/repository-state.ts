@@ -13,11 +13,6 @@ export interface RepositoryState {
   readme: { path: string; content: string; sha: string } | null;
 }
 
-/**
- * Load a bounded, filtered snapshot at an exact commit. The configured README
- * path is always read even when it lives outside the root directory or would
- * otherwise be filtered out by ignore rules.
- */
 export async function loadRepositoryState(
   client: GitHubClient,
   repository: RepositoryDocument,
