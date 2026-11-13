@@ -340,4 +340,4 @@ Special thanks to the developer community and everyone contributing to making de
 
 [Live Application](https://commitscribble.vercel.app)
 
-**CommitScribble — Built for developers, designed for productivity.**
+
